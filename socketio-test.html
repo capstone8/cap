@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.io Test</title>
+        
+    <script src="/json.js"></script> <!-- for ie -->
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    
+    <script>
+        
+    var socket;
+    var firstconnect = true;
+        
+    function connect() {
+      if(firstconnect) {
+        socket = io.connect(null);
+          
+        socket.on('message', function(data){ message(data); });
+	socket.on('result',function(result){ query_result(result); });
+        socket.on('connect', function(){ status_update("Connected to Server"); });
+        socket.on('disconnect', function(){ status_update("Disconnected from Server"); });
+        socket.on('reconnect', function(){ status_update("Reconnected to Server"); });
+        socket.on('reconnecting', function( nextRetry ){ status_update("Reconnecting in " 
+          + nextRetry + " seconds"); });
+        socket.on('reconnect_failed', function(){ message("Reconnect Failed"); });
+	socket.on('err', function(message) {status_update(message); });
+	socket.on('removeCustomerFromFeed', function(ID) {removeCustomerFromFeed(ID);});
+	socket.on('addCustomerToFeed', function(ID, cust) {addCustomerToFeed(ID, cust);});
+    
+        firstconnect = false;
+      }
+      else {
+        socket.socket.reconnect();
+      }
+    }
+        
+    function disconnect() {
+      socket.disconnect();
+    }
+        
+    function message(data) {
+
+      document.getElementById('message').innerHTML = "Server says: " + data;
+    }
+
+	function query_result(result){
+		var div = document.getElementById("t");
+		div.innerHTML += "<tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Address</th><th>Phone</th><th>picture</th></tr>";
+		for (var i in result) {
+			div.innerHTML += "<tr>" + "<td>" + result[i].empID + "</td>" + "<td>" + result[i].firstName + "</td>" + "<td>" + result[i].lastName + "</td>" + "<td>" + result[i].address + "</td>" + "<td>" + result[i].phoneNumber + "</td>" + "<td><img src='" + result[i].picture + "'/ ></td>" + "</tr>";
+			/*div.innerHTML += "<td>" + result[i].empID + "</td>";
+			div.innerHTML += "<td>" + result[i].firstName + "</td>";
+			div.innerHTML += "<td>" + result[i].lastName + "</td>";
+			div.innerHTML += "<td>" + result[i].address + "</td>";
+			div.innerHTML += "<td>" + result[i].phoneNumber + "</td>";
+			div.innerHTML += "<td><img src='" + result[i].picture + "'/ ></td>";
+			div.innerHTML += "</tr>";
+		*/}
+	}
+
+
+
+	//alert( $.toJSON(result));
+	//alert(result);//problem returning array
+	//var div = document.getElementById('result');
+	//div.innerHTML = result[1] + ' ' + result[2];
+
+    function status_update(txt){
+      document.getElementById('status').innerHTML = txt;
+    }
+
+	function removeCustomerFromFeed(ID) {
+
+		var node = document.getElementById(ID);
+		if(node.parentNode) {
+			node.parentNode.removeChild(node);
+		}
+		//row.innerHTML = "";
+	}
+
+	function addCustomerToFeed(ID, cust) {
+		var div = document.getElementById("t");
+		div.innerHTML += "<tr id='" + ID + "'> <td>" + cust.empID + "</td>" + "<td>" + cust.firstName + "</td>" + "<td>" + cust.lastName + "</td>" + "<td>" + cust.address + "</td>" + "<td>" + cust.phoneNumber + "</td>" + "<td><img src='" + cust.picture + "'/ ></td>" + "</tr>";
+		//alert("Add customer: " + ID + ", Name: " + cust.firstName + " " + cust.lastName + ", Picture: " + cust.picture);
+	}
+
+    function send() {
+      var test = document.getElementById('inputbx').value;
+	alert(test);
+        //status_update(test);
+        socket.emit("cusEnterLeave", test);    
+    }       
+      
+    </script>
+
+	<style>
+	table, th, tr, td {
+		border: 1px solid black;
+		border-collapse: collapse;
+		text-align: center;
+	}
+	</style>
+	<table><tr><td>hey</td></tr></table>
+    
+    <h1>Socket.io Test</h1>
+    <div><p id="status">Waiting for input</p></div>
+    <div><p id="message"></p></div>  
+    <button id="connect" onClick='connect()'/>Connect</button>
+    <button id="disconnect" onClick='disconnect()'>Disconnect</button>
+    <input type="text" name="idbx" id='inputbx'></br>
+    <button id="send" onClick='send()'/>Send Message</button>
+<div id="result"><p>query result</p><table id="t">
+	<tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Address</th><th>Phone</th><th>picture</th></tr>
+	</table></div>
+  </body>
+</html>
