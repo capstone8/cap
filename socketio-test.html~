@@ -5,7 +5,12 @@
         
     <script src="/json.js"></script> <!-- for ie -->
     <script src="/socket.io/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1"> 
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
   </head>
+  
   <body>
     
     <script>
@@ -45,71 +50,65 @@
       document.getElementById('message').innerHTML = "Server says: " + data;
     }
 
-	function query_result(result){
-		var div = document.getElementById("t");
-		div.innerHTML += "<tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Address</th><th>Phone</th><th>picture</th></tr>";
-		for (var i in result) {
-			div.innerHTML += "<tr>" + "<td>" + result[i].empID + "</td>" + "<td>" + result[i].firstName + "</td>" + "<td>" + result[i].lastName + "</td>" + "<td>" + result[i].address + "</td>" + "<td>" + result[i].phoneNumber + "</td>" + "<td><img src='" + result[i].picture + "'/ ></td>" + "</tr>";
-			/*div.innerHTML += "<td>" + result[i].empID + "</td>";
-			div.innerHTML += "<td>" + result[i].firstName + "</td>";
-			div.innerHTML += "<td>" + result[i].lastName + "</td>";
-			div.innerHTML += "<td>" + result[i].address + "</td>";
-			div.innerHTML += "<td>" + result[i].phoneNumber + "</td>";
-			div.innerHTML += "<td><img src='" + result[i].picture + "'/ ></td>";
-			div.innerHTML += "</tr>";
-		*/}
-	}
-
-
-
-	//alert( $.toJSON(result));
-	//alert(result);//problem returning array
-	//var div = document.getElementById('result');
-	//div.innerHTML = result[1] + ' ' + result[2];
-
     function status_update(txt){
-      document.getElementById('status').innerHTML = txt;
+      //document.getElementById('status').innerHTML = txt;
     }
 
 	function removeCustomerFromFeed(ID) {
 
-		var row = document.getElementById(ID);
-		row.innerHTML = "";
+		var node = document.getElementById(ID);
+		if(node.parentNode) {
+			node.parentNode.removeChild(node);
+		}
+		//row.innerHTML = "";
 	}
 
 	function addCustomerToFeed(ID, cust) {
 		var div = document.getElementById("t");
-		div.innerHTML += "<tr id='" + ID + "'> <td>" + cust.empID + "</td>" + "<td>" + cust.firstName + "</td>" + "<td>" + cust.lastName + "</td>" + "<td>" + cust.address + "</td>" + "<td>" + cust.phoneNumber + "</td>" + "<td><img src='" + cust.picture + "'/ ></td>" + "</tr>";
-		//alert("Add customer: " + ID + ", Name: " + cust.firstName + " " + cust.lastName + ", Picture: " + cust.picture);
+		var time = new Date();
+		$('#t').append("<li id='" + ID + "'><a href\"'#\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picture + "\" /></a><a href=\"#\"></a></li>").listview("refresh");
+	
 	}
 
     function send() {
       var test = document.getElementById('inputbx').value;
-	alert(test);
+	//alert(test);
         //status_update(test);
         socket.emit("cusEnterLeave", test);    
-    }       
+    }
+    
+    window.onload = function()
+                {
+                   connect();
+                };
       
     </script>
+	
+<div data-role="page" data-theme="c" data-add-back-btn="true">
 
-	<style>
-	table, th, tr, td {
-		border: 1px solid black;
-		border-collapse: collapse;
-		text-align: center;
-	}
-	</style>
-	<table><tr><td>hey</td></tr></table>
-    
-    <h1>Socket.io Test</h1>
-    <div><p id="status">Waiting for input</p></div>
-    <div><p id="message"></p></div>  
-    <button id="connect" onClick='connect()'/>Connect</button>
-    <button id="disconnect" onClick='disconnect()'>Disconnect</button>
-    <input type="text" name="idbx" id='inputbx'></br>
+	<div data-role="header" data-position="fixed" data-add-back-btn="true">
+		<h1>Customer Feed</h1>
+	</div><!-- /header -->
+	
+    <input type="text" name="idbx" id='inputbx'>
     <button id="send" onClick='send()'/>Send Message</button>
-<div id="result"><p>query result</p><table id="t">
-	<tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Address</th><th>Phone</th><th>picture</th></tr>
-	</table></div>
+
+	<div data-role="content">
+		<ul id="t" data-role="listview" data-split-icon="check" data-inset="false" data-filter="false" >
+			
+		</ul>
+
+	</div><!-- /content -->
+		<!--Footer-->
+		<div data-role="footer" data-position="fixed">		
+			<div data-role="navbar">
+				<ul>
+					<li><a href="index.html" data-icon="home" data-iconpos="bottom" data-transition="pop">Home</a></li>
+					<li><a href="search.html" data-icon="search" data-iconpos="bottom" data-transition="slideup">Search</a></li>
+				</ul>
+			</div><!-- /navbar -->
+		</div><!-- /footer -->
+</div><!-- /page -->
+	
   </body>
 </html>

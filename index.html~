@@ -90,9 +90,10 @@
 		<h1>Customer Feed</h1>
 	</div><!-- /header -->
 	
-    <input type="text" name="idbx" id='inputbx'>
-    <button id="send" onClick='send()'/>Send Message</button>
-
+	<div style="white-space: nowrap;">
+	    <input type="text" name="idbx" id='inputbx'>
+	    <button id="send" onClick='send()'/>Send Message</button>
+	</div>
 	<div data-role="content">
 		<ul id="t" data-role="listview" data-split-icon="check" data-inset="false" data-filter="false" >
 			

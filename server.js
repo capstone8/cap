@@ -1,17 +1,17 @@
+var util = require("./util.js");
+
 var http = require('http')
 , url = require('url')
 , fs = require('fs')
 , server;
 
-var mysql      = require('mysql');
-var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'root',
-  password : 'root',
-  database : 'capstone'
+  var mysql      = require('mysql');
+  var connection = mysql.createConnection({
+    host     : 'localhost',
+    user     : 'root',
+    password : 'root',
+    database : 'capstone'
 });	
-
-
 
 
 server = http.createServer(function(req, res) {
@@ -20,10 +20,10 @@ server = http.createServer(function(req, res) {
   switch (path){
     case '/':
       res.writeHead(200, {'Content-Type': 'text/html'});
-      res.write('<h1>Hello! Try the <a href="/socketio-test.html">Socket.io Test</a></h1>');
+      res.write('<h1>Hello! Try the <a href="/index.html">Hey</a></h1>');
       res.end();
       break;
-    case '/socketio-test.html':
+    case '/index.html':
       fs.readFile(__dirname + path, function(err, data){
         if (err) return send404(res);
         res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
