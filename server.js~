@@ -5,7 +5,15 @@ var http = require('http')
 , fs = require('fs')
 , server;
 
-util.mysqlConnect();
+  var mysql      = require('mysql');
+  var connection = mysql.createConnection({
+    host     : 'localhost',
+    user     : 'root',
+    password : 'root',
+    database : 'test'
+});	
+
+
 
 server = http.createServer(function(req, res) {
   // your normal server code
@@ -36,7 +44,7 @@ send404 = function(res){
 };
 
 server.listen(8080);
-util.mysqlConnect.connection.connect();
+connection.connect();
 console.log("Connected to MySQL");
 // socket.io, I choose you
 var io = require('socket.io').listen(server);
@@ -51,26 +59,47 @@ io.sockets.on('connection', function(socket){
   socket.on('message', function(message){
         console.log("Received message: " + message + " - from client " + socket.id);
 	
-	//connection.query('SELECT * FROM Employees WHERE EmpID =' + message, function(err, rows, fields) {
- 	 //if (err) throw err;
 
-		//socket.emit('result',rows);
-	//});
 	
   });
-
+//listener for customer entering/leaving the store
 	socket.on('cusEnterLeave', function (ID) { cusEnterLeave(socket, ID); });
-    
+	
+	
+//listener for customer being helped at the store 
+ socket.on('custHelped',function(ID){custHelped(socket,ID); });
+ 
+ 
+ //invoke when socket is disconnected
   socket.on('disconnect', function(){
     console.log("Connection " + socket.id + " terminated.");
-connection.end();
+    //kill mysql connection upon socket disconnect
+				connection.end();
   });
     
 });
 
-
+//array to keep track of customers enter/leave the store
 var custArr = new Array();
+//array to keep track of customers being helped at the store
+var helpedArr = new Array();
 
+
+function custHelped(socket,ID){
+			if( ID != null && typeof(helpedArr[ID]) != 'undefined') {		
+		//free memory somehow		
+		delete helpedArr[ID];
+		socket.emit('isHelped', false, ID); //customer will be marked as not helped
+	} else if (ID!=null) {
+		
+			helpedArr[ID] = ID;
+			socket.emit('isHelped', true, ID); //customer will be marked as helped
+} else {
+				socket.emit('err', "wtf");
+	}
+	}
+	
+	
 function cusEnterLeave(socket, ID) {
 
 	if( ID != null && typeof(custArr[ID]) != 'undefined') {		

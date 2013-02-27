@@ -5,7 +5,7 @@ function mysqlConnect() {
     host     : 'localhost',
     user     : 'root',
     password : 'root',
-    database : 'capstone'
+    database : 'test'
 });	
 }
 

@@ -33,7 +33,7 @@
 	socket.on('err', function(message) {status_update(message); });
 	socket.on('removeCustomerFromFeed', function(ID) {removeCustomerFromFeed(ID);});
 	socket.on('addCustomerToFeed', function(ID, cust) {addCustomerToFeed(ID, cust);});
-    
+    socket.on('isHelped',function(ID, helped){changeCSS(ID,helped); });
         firstconnect = false;
       }
       else {
@@ -54,19 +54,49 @@
       //document.getElementById('status').innerHTML = txt;
     }
 
+	function isHelped(ID){
+			alert(ID);
+			socket.emit('custHelped',ID);
+			
+				
+					
+	}
+	function changeCSS (helped, ID){
+	alert(helped + " " + ID);
+	var index;	
+	$('#t').delegate('li', 'tap', function (index) {
+    index = $(this).index();
+    alert(index);
+  });
+		if (helped){
+				//		alert($('#cust1').length);
+ 				
+ 						$('.ui-li').css("background-color","yellow");
+ 					
+ 					
+   
+
+					}
+	 else {
+	 				$('.ui-li').css("background-color", "#EEEEEE");	 
+	 }
+
+	}
+	
+	
+
 	function removeCustomerFromFeed(ID) {
 
-		var node = document.getElementById(ID);
+		var node = document.getElementById('cust'+ID);
 		if(node.parentNode) {
 			node.parentNode.removeChild(node);
 		}
-		//row.innerHTML = "";
+		
 	}
 
 	function addCustomerToFeed(ID, cust) {
-		var div = document.getElementById("t");
 		var time = new Date();
-		$('#t').append("<li id='" + ID + "'><a href\"'#\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picture + "\" /></a><a href=\"#\"></a></li>").listview("refresh");
+		$('#t').append("<li id=\""+'cust' + ID + "\"><a href\"'#\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picture + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview("refresh");
 	
 	}
 
@@ -90,10 +120,9 @@
 		<h1>Customer Feed</h1>
 	</div><!-- /header -->
 	
-	<div style="white-space: nowrap;">
 	    <input type="text" name="idbx" id='inputbx'>
 	    <button id="send" onClick='send()'/>Send Message</button>
-	</div>
+
 	<div data-role="content">
 		<ul id="t" data-role="listview" data-split-icon="check" data-inset="false" data-filter="false" >
 			
