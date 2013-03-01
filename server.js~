@@ -32,6 +32,14 @@ server = http.createServer(function(req, res) {
         res.end();
       });
       break;
+    case '/customer.html':
+      fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+      break;
 
     default: send404(res);
   }
@@ -69,6 +77,8 @@ io.sockets.on('connection', function(socket){
 //listener for customer being helped at the store 
  socket.on('custHelped',function(ID){custHelped(socket,ID); });
  
+ //listener for customer.html query
+ socket.on('getCustomerData',function(ID){cusPage(socket, ID);})
  
  //invoke when socket is disconnected
   socket.on('disconnect', function(){
@@ -89,11 +99,11 @@ function custHelped(socket,ID){
 			if( ID != null && typeof(helpedArr[ID]) != 'undefined') {		
 		//free memory somehow		
 		delete helpedArr[ID];
-		socket.emit('isHelped', false, ID); //customer will be marked as not helped
+		io.sockets.emit('isHelped', false, ID); //customer will be marked as not helped
 	} else if (ID!=null) {
 		
 			helpedArr[ID] = ID;
-			socket.emit('isHelped', true, ID); //customer will be marked as helped
+			io.sockets.emit('isHelped', true, ID); //customer will be marked as helped
 } else {
 				socket.emit('err', "wtf");
 	}
@@ -105,13 +115,13 @@ function cusEnterLeave(socket, ID) {
 	if( ID != null && typeof(custArr[ID]) != 'undefined') {		
 		//free memory somehow		
 		delete custArr[ID];
-		socket.emit('removeCustomerFromFeed', ID);
+		io.sockets.emit('removeCustomerFromFeed', ID);
 	} else if (ID!=null) {
 		var cust;
 		getCustomerFromDB(socket, ID, function(cust) {
 			if(cust.length > 0) {
 				custArr[ID] = cust[0];
-			socket.emit('addCustomerToFeed', ID, custArr[ID]);
+				io.sockets.emit('addCustomerToFeed', ID, custArr[ID]);
 			} else {
 				socket.emit('err', "wtf");
 			}
@@ -140,4 +150,38 @@ function getCustomerFromDB(socket, ID, callback) {
 	}
 }
 
+function cusPage(socket, ID) {
+	if (ID!=null) {
+		var cust;
+		getFullCustomerFromDB(socket, ID, function(cust) {
+			if(cust.length > 0) {
+				custArr[ID] = cust[0];
+				console.log("Got ID from Yaniv's Anus: " + ID);
+				socket.emit('getCust', ID, custArr[ID]);
+			} else {
+				socket.emit('err', "wtf");
+			}
+		});
+		//console.log("look here fuckface" + rows[0].empID);		
+		
+	} else {
+		socket.emit('err', "no id");
+	}
+}
+
+function getFullCustomerFromDB(socket, ID, callback) {
+  
+    if(ID == null) {
+      socket.emit('err','FAG');
+      return;
+    } else {
+	connection.query('SELECT * FROM Employees WHERE EmpID = ' + ID, function(err, rows) {
+	   if (err) throw err;
+	  else if (rows == null) { socket.emit('err', 'seriouslyfuckyou'); }
+			else {
+				callback(rows);
+			}
+		});
+	}
+}
 

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
     <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
     <script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+    
   </head>
   
   <body>
@@ -54,36 +55,25 @@
       //document.getElementById('status').innerHTML = txt;
     }
 
-	function isHelped(ID){
-			alert(ID);
-			socket.emit('custHelped',ID);
-			
-				
-					
-	}
+    function isHelped(ID){
+		    socket.emit('custHelped',ID);
+		    
+			    
+				    
+    }
+    
 	function changeCSS (helped, ID){
-	alert(helped + " " + ID);
-	var index;	
-	$('#t').delegate('li', 'tap', function (index) {
-    index = $(this).index();
-    alert(index);
-  });
-		if (helped){
-				//		alert($('#cust1').length);
- 				//problem cant find a way to select the specific li with id cust+ID
- 						$('.ui-li').css("background-color","yellow");
- 					
- 					
-   
+	      if (helped){
+		    $("#cust" + ID + " .ui-li").css("background-color","yellow");
+		    $("#cust" + ID).addClass("helped");
 
-					}
-	 else {
-	 				$('.ui-li').css("background-color", "#EEEEEE");	 
+	      }
+	      else {
+		      $("#cust" + ID + " .ui-li").css("background-color", "#EEEEEE");	
+		      $("#cust" + ID).removeClass("helped");
+	      }
+
 	 }
-
-	}
-	
-	
 
 	function removeCustomerFromFeed(ID) {
 
@@ -96,8 +86,13 @@
 
 	function addCustomerToFeed(ID, cust) {
 		var time = new Date();
-		$('#t').append("<li id=\""+'cust' + ID + "\"><a href\"'#\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picture + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview("refresh");
+		$('#t').prepend("<li id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"customer.html\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picture + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview("refresh");
 	
+	}
+	
+	function sendIdToCustomerPage(ID) {
+	  alert(ID);
+	  socket.emit("getCustomerData",ID);
 	}
 
     function send() {
