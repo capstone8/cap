@@ -86,19 +86,21 @@
 
 	function addCustomerToFeed(ID, cust) {
 		var time = new Date();
-		$('#t').prepend("<li id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"customer.html\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picture + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview("refresh");
+		$('#t').prepend("<li id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picture + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview("refresh");
 	
 	}
 	
 	function sendIdToCustomerPage(ID) {
-	  alert(ID);
 	  socket.emit("getCustomerData",ID);
+	  $.mobile.changePage( "/customer.html", {
+	    type: "post",
+	    data: ID,
+	    transition: "slide"
+	  });
 	}
 
     function send() {
       var test = document.getElementById('inputbx').value;
-	//alert(test);
-        //status_update(test);
         socket.emit("cusEnterLeave", test);    
     }
     

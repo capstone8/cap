@@ -61,7 +61,7 @@ var io = require('socket.io').listen(server);
 io.sockets.on('connection', function(socket){
 
   console.log("Connection " + socket.id + " accepted.");
-    
+ // socket.join(socket.handshake.sessionID); 
   // now that we have our connected 'socket' object, we can 
   // define its event handlers
   socket.on('message', function(message){
@@ -154,9 +154,10 @@ function cusPage(socket, ID) {
 	if (ID!=null) {
 		var cust;
 		getFullCustomerFromDB(socket, ID, function(cust) {
+		
 			if(cust.length > 0) {
-				custArr[ID] = cust[0];
-				socket.emit('getCust', ID, custArr[ID]);
+				//custArr[ID] = cust[0];
+				socket.emit('getCust', ID, cust);
 			} else {
 				socket.emit('err', "wtf");
 			}
