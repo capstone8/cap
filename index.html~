@@ -2,27 +2,27 @@
 <html>
   <head>
     <title>Socket.io Test</title>
-        
-    <script src="/json.js"></script> <!-- for ie -->
-    <script src="/socket.io/socket.io.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1"> 
-    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
-    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
-    <script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
-    
+    	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+	<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>  
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	
   </head>
   
   <body>
-    
+     
     <script>
-        
+   
     var socket;
     var firstconnect = true;
         
     function connect() {
       if(firstconnect) {
         socket = io.connect(null);
-          
+        
+        
+        
         socket.on('message', function(data){ message(data); });
 	socket.on('result',function(result){ query_result(result); });
         socket.on('connect', function(){ status_update("Connected to Server"); });
@@ -35,6 +35,18 @@
 	socket.on('removeCustomerFromFeed', function(ID) {removeCustomerFromFeed(ID);});
 	socket.on('addCustomerToFeed', function(ID, cust) {addCustomerToFeed(ID, cust);});
     socket.on('isHelped',function(ID, helped){changeCSS(ID,helped); });
+    socket.on('retrieveCustomerList', function(list) {
+      for (var cust in list) {
+	console.log("a1: " + list[cust].id);
+	console.log("a2: " + list[cust].ID);
+	console.log("a3: " + list[cust].Id);
+	console.log("a4: " + list[cust].EmpID);
+	console.log("a5: " + list[cust].EmpId);
+	addCustomerToFeed(list[cust].id, list[cust]);
+      }
+    });
+    
+    socket.emit('getCustomerList');
         firstconnect = false;
       }
       else {
@@ -91,11 +103,12 @@
 	}
 	
 	function sendIdToCustomerPage(ID) {
-	  socket.emit("getCustomerData",ID);
+	  socket.emit("setCustomerID", ID);
 	  $.mobile.changePage( "/customer.html", {
-	    type: "post",
-	    data: ID,
-	    transition: "slide";
+	    role: "page",
+	    type: "get",
+	    data:{ID:ID},
+	    transition: "slide"
 	  });
 	}
 

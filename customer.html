@@ -2,43 +2,43 @@
 <html> 
 <head> 
 	<title>Customer Information</title> 
-	
-	
-	<meta name="viewport" content="width=device-width, initial-scale=1"> 
-	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+
+</head> 
+<body> 
+		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
 	<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
 	<script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
-</head> 
-<body> 
 
-<script>
+<script type="text/javascript">
+
+ $('div:jqmData(role="page")').live('pagebeforeshow', function() {
+    connect();
+  });
   
-    // Handler for .ready() called.
-    $(document).ready(function() {
-  // Handler for .ready() called.
+  
 
-    alert("im here");
-    var socket = io.connect(null);
-    socket.on('getCust', function (ID, cust) { addCustomerData(ID, cust); });
-   // alert(ID + "    " + cust.firstName);
+      
+    // alert(ID + "    " + cust.firstName);
+
    
-   });
-   function addCustomerData(ID, cust) {
-	console.log("cock my balls: " +ID);
-	$("h1").text(ID);
-	alert("im inside");
-    }
+   
+   
     
    
 </script>
 
 <div id="customerPage" data-role="page" data-theme="c" data-add-back-btn="true">
+	<script src="/include.js"></script>
+	<script>
+	connect();
 
+	</script>
+	
 	<div data-role="header" data-position="fixed">
 		<h1>Customer Information</h1>
 	</div><!-- /header -->
-
+	
 	<div data-role="content">
 	<h1>Steven Glansberg</h1>
 	<h3>Time in store - 27 minutes</h3>
