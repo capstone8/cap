@@ -19,8 +19,6 @@ var socket;
     }
 
     function addCustomerData(ID, cust) {
-	console.log("cock my balls: " +ID);
 	$("h1").text(cust.firstName + " " + cust.lastName);
-	alert("im inside");
     }
     

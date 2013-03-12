@@ -5,7 +5,7 @@ var socket;
     function connect() {
       if(firstconnect) {
         socket = io.connect(null);
-        socket.on('getCust', function (ID, cust) { addCustomerData(ID, cust); });
+        socket.on('getCust', function (ID, cust) {addCustomerData(ID, cust);});
 	socket.on('retrieveCustID', function(ID) { 
 	  custID = ID;
 	  socket.emit("getCustomerData",custID);
@@ -22,3 +22,17 @@ var socket;
 	$("h1").text(cust.firstName + " " + cust.lastName);
     }
     
+    function loadPage(page) {
+      switch (page) {
+	case 'pp':
+	 $('#customerPage').load('/purchase_history.html #content');
+	  break;
+	case 'size':
+	  
+	  break;
+	case 'brand':
+	  
+	  break;
+     }
+      
+    }
