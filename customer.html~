@@ -49,7 +49,7 @@
 			<li><a href="recommendedPurchases.html">Recommended Purchases
 				</a>
 			</li>
-			<li><a href="pastPurchases.html">Past Purchases
+			<li><a href="purchase_history.html">Past Purchases
 				</a>
 			</li>
 			<li><a href="notes.html">Notes
@@ -58,10 +58,10 @@
 			<li><a href="rewards.html">Rewards
 				</a>
 			</li>
-			<li><a href="favoriteBrands.html">Brands
+			<li><a href="brands.html">Brands
 				</a>
 			</li>
-			<li><a href="sizeTable.html">Size Table
+			<li><a href="siz.html">Size Table
 				</a>
 			</li>
 		</ul>
