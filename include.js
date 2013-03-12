@@ -25,7 +25,12 @@ var socket;
     function loadPage(page) {
       switch (page) {
 	case 'pp':
-	 $('#customerPage').load('/purchase_history.html #content');
+	  $("#content").load("purchase_history.html #content");
+	  
+	 
+	      $("#lst").listview("refresh");
+	 
+	  
 	  break;
 	case 'size':
 	  

@@ -39,29 +39,18 @@
 		<h1>Customer Information</h1>
 	</div><!-- /header -->
 	
-	<div data-role="content">
-	<h1>Steven Glansberg</h1>
-	<h3>Time in store - 27 minutes</h3>
-	    Steven's most purchased brand is <b>Alfani</b>. A <b>smart</b> shopper who spends a <b>moderate</b> amount 
-	    of time in the stores looking at <b>shoes, shirts, athletic gear and pants</b>.
+	<div id="content" data-role="content">
+	<h1>Placeholder</h1>
+	<h3 class="time">Time in store - N/A</h3>
 		
 		<ul data-role="listview" data-inset="true" >
-			<li><a href="recommendedPurchases.html">Recommended Purchases
+			<li><a href="#" onClick="loadPage('pp')">Past Purchases
 				</a>
 			</li>
-			<li><a href="purchase_history.html">Past Purchases
+			<li><a href="#" onClick="loadPage('brand')">Brands
 				</a>
 			</li>
-			<li><a href="notes.html">Notes
-				</a>
-			</li>
-			<li><a href="rewards.html">Rewards
-				</a>
-			</li>
-			<li><a href="brands.html">Brands
-				</a>
-			</li>
-			<li><a href="size.html">Size Table
+			<li><a href="#" onClick="loadPage('size')">Size Table
 				</a>
 			</li>
 		</ul>
