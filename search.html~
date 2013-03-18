@@ -22,7 +22,7 @@ $( ":jqmData(role='page'):jqmData(cache='false')" )
 
 <script src="/include.js"></script>
 <script type="text/javascript">
-$.mobile.page.prototype.options.domCache = false;
+$.mobile.page.prototype.options.domCache = true;
 
         
        //alert(customerList.length);

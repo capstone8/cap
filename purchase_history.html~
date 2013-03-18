@@ -3,13 +3,27 @@
 <head> 
 	<title>Past Purchases</title> 
 	<meta name="viewport" content="width=device-width, initial-scale=1"> 
-	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
-	<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
-	<script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
 </head> 
 <body> 
-<div id="purchase_history" data-role="page" data-theme="c" data-add-back-btn="true">
 
+		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+	<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+
+<script type="text/javascript">
+ 
+ $('div:jqmData(role="page")').live('pagebeforeshow', function() {
+      connect();  
+ });
+</script>
+
+<div id="purchase_history" data-role="page" data-theme="c" data-add-back-btn="true">
+<script src="/include.js"></script>
+<script>
+  connect();
+  addCustomerData(custID,custInfo);
+</script>
 	<div data-role="header" data-position="fixed">
 		<h1>Past Purchases</h1>
 	</div><!-- /header -->
@@ -82,7 +96,7 @@
 			<div data-role="navbar">
 				<ul>
 					<li><a href="index.html" data-icon="home" data-iconpos="bottom" data-transition="pop">Home</a></li>
-					<li><a href="search.html" data-icon="search" data-iconpos="bottom" data-transition="slideup">Search</a></li>
+					<li><a onClick="loadPage('search')" href="#" data-icon="search" data-iconpos="bottom" data-transition="slideup">Search</a></li>
 				</ul>
 			</div><!-- /navbar -->
 		</div><!-- /footer -->

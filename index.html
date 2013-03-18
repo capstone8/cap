@@ -6,6 +6,7 @@
 	<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
 	<script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>  
+	<script src="http://underscorejs.org/underscore-min.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1"> 
 	
   </head>
@@ -22,7 +23,7 @@
         socket = io.connect(null);
         
         
-        
+        socket.emit("getCustomerListFromDB");
         socket.on('message', function(data){ message(data); });
 	socket.on('result',function(result){ query_result(result); });
         socket.on('connect', function(){ status_update("Connected to Server"); });
@@ -35,20 +36,23 @@
 	socket.on('removeCustomerFromFeed', function(ID) {removeCustomerFromFeed(ID);});
 	socket.on('addCustomerToFeed', function(ID, cust) {addCustomerToFeed(ID, cust);});
     socket.on('isHelped',function(ID, helped){changeCSS(ID,helped); });
-    socket.on('retrieveCustomerList', function(list) {
+    //get list of customers from the database for the seaarch page in an array of customers
+   // socket.on('retrieveCustomerListFromDB', function(custlist){displayListOfCustomers(custlist)});
+    socket.emit('getCustomerListFromFeed');
+    socket.on('retrieveCustomerListFromFeed', function(list) {
       for (var cust in list) {
 	addCustomerToFeed(list[cust].empID, list[cust]);
       }
     });
     
-    socket.emit('getCustomerList');
+    
         firstconnect = false;
       }
       else {
         socket.socket.reconnect();
       }
     }
-        
+ 
     function disconnect() {
       socket.disconnect();
     }
@@ -93,7 +97,7 @@
 
 	function addCustomerToFeed(ID, cust) {
 		var time = new Date();
-		$('#t').prepend("<li id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picture + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview("refresh");
+		$('#t').prepend("<li id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picture + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview('refresh');
 	
 	}
 	
@@ -116,7 +120,14 @@
                 {
                    connect();
                 };
-      
+     function loadPage(){
+    //socket.emit("getCustomerListFromDB");
+    $.mobile.changePage( "/search.html", {
+	      role: "page",
+	      type: "get",
+	      transition: "slide"
+	    });
+  }
     </script>
 	
 <div data-role="page" data-theme="c" data-add-back-btn="true">
@@ -139,7 +150,7 @@
 			<div data-role="navbar">
 				<ul>
 					<li><a href="index.html" data-icon="home" data-iconpos="bottom" data-transition="pop">Home</a></li>
-					<li><a href="search.html" data-icon="search" data-iconpos="bottom" data-transition="slideup">Search</a></li>
+					<li><a onClick="" href="search.html" data-icon="search" data-iconpos="bottom" data-transition="slideup">Search</a></li>
 				</ul>
 			</div><!-- /navbar -->
 		</div><!-- /footer -->

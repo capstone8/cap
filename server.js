@@ -4,7 +4,8 @@ var http = require('http')
 , url = require('url')
 , fs = require('fs')
 , server;
-
+//var $ = require('jQuery');
+var _ = require('underscore');
   var mysql      = require('mysql');
   var connection = mysql.createConnection({
     host     : 'localhost',
@@ -132,9 +133,32 @@ io.sockets.on('connection', function(socket){
   
   socket.on('getCustomerID', function(ID){getCustomerID(socket, ID);});
   
-  socket.on('getCustomerList', function() {getCustomerList(socket);});
+  socket.on('getCustomerListFromFeed', function() {getCustomerListFromFeed(socket);});
+  var customersDB = new Array();
+  var first = 'false';
+  socket.on('getCustomerListFromDB',function(){getCustomerListFromDB(function(custListFromDB){ 
+   if (typeof customersDB !== 'undefined' && customersDB.length > 0) {
+    // the array is defined and has at least one element
+    _.uniq(customersDB);
+    io.sockets.emit('retreiveCustomerListFromDB',customersDB);
+
+} else
+    for (var cust in custListFromDB) {
+	customersDB.push(custListFromDB[cust]);
+    }
+    
+    
+  })});
     
 });
+
+function inArray(needle, haystack) {
+    var length = haystack.length;
+    for(var i = 0; i < length; i++) {
+        if(haystack[i] == needle) return true;
+    }
+    return false;
+}
 
 //array to keep track of customers enter/leave the store
 var custArr = new Array();
@@ -143,12 +167,22 @@ var helpedArr = new Array();
 
 var custViewing = new Array();
 
-function getCustomerList(socket) {
+function getCustomerListFromDB(callback){
+  connection.query('SELECT * FROM Employees', function(err, rows) {
+	   if (err) throw err;
+	  else if (rows == null) { socket.emit('err', 'seriouslyfuckyou'); }
+			else {
+				callback(rows);
+			}
+		});
+}
+
+function getCustomerListFromFeed(socket) {
   var customers = new Array();
   for (var cust in custArr) {
     customers.push(custArr[cust]);
   }
-  socket.emit('retrieveCustomerList', customers);
+  socket.emit('retrieveCustomerListFromFeed', customers);
 }
 function setCustomerID(socket, ID) {
   custViewing[socket.id] = ID;
