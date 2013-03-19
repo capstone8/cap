@@ -10,19 +10,15 @@
 </head> 
 
 <body> 
-<script>
-$( ":jqmData(role='page'):jqmData(cache='false')" )
-    .live(
-            "pagehide",
-            function() {
-                $(this).remove();
-            });
-</script>
+
 <div data-role="page" data-theme="c" data-add-back-btn="true">
 
 <script src="/include.js"></script>
 <script type="text/javascript">
-$.mobile.page.prototype.options.domCache = false;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 336739caee1a6064d6ddbfeab841b7df2b4c3857
 
         
        //alert(customerList.length);
