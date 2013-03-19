@@ -12,8 +12,7 @@ var _ = require('underscore');
     user     : 'root',
     password : 'root',
     database : 'test'
-});	
-
+});
 
 
 server = http.createServer(function(req, res) {
@@ -81,8 +80,6 @@ server = http.createServer(function(req, res) {
         res.end();
       });
       break;
-      
-
     default: send404(res);
   }
 }),
@@ -103,56 +100,46 @@ var io = require('socket.io').listen(server);
 io.sockets.on('connection', function(socket){
 
   console.log("Connection " + socket.id + " accepted.");
- // socket.join(socket.handshake.sessionID); 
-  // now that we have our connected 'socket' object, we can 
-  // define its event handlers
   socket.on('message', function(message){
-        console.log("Received message: " + message + " - from client " + socket.id);
-	
-
-	
+    console.log("Received message: " + message + " - from client " + socket.id);
   });
 //listener for customer entering/leaving the store
-	socket.on('cusEnterLeave', function (ID) { cusEnterLeave(socket, ID); });
-	
-	
+  socket.on('cusEnterLeave', function (ID) { cusEnterLeave(socket, ID); });
 //listener for customer being helped at the store 
- socket.on('custHelped',function(ID){custHelped(socket,ID); });
- 
- //listener for customer.html query
- socket.on('getCustomerData',function(ID){cusPage(socket, ID);});
- 
- //invoke when socket is disconnected
+  socket.on('custHelped',function(ID){custHelped(socket,ID); });
+//listener for customer.html query
+  socket.on('getCustData',function(ID){getCustData(socket, ID);});
+//invoke when socket is disconnected
   socket.on('disconnect', function(){
     console.log("Connection " + socket.id + " terminated.");
     //kill mysql connection upon socket disconnect
-				connection.end();
+    connection.end();
   });
-  
   socket.on('setCustomerID', function(ID){setCustomerID(socket, ID);});
-  
   socket.on('getCustomerID', function(ID){getCustomerID(socket, ID);});
-  
   socket.on('getCustomerListFromFeed', function() {getCustomerListFromFeed(socket);});
-  var customersDB = new Array();
-  var first = 'false';
-  socket.on('getCustomerListFromDB',function(){getCustomerListFromDB(function(custListFromDB){ 
-   if (typeof customersDB !== 'undefined' && customersDB.length > 0) {
-    // the array is defined and has at least one element
-    _.uniq(customersDB);
-    if (first){
-    io.sockets.emit('retreiveCustomerListFromDB',customersDB);
-    first = 'true';
-    }
-} else
-    for (var cust in custListFromDB) {
-	customersDB.push(custListFromDB[cust]);
-    }
-    
-    
-  })});
+  socket.on('getCustomerListFromDB',function(){getCustomerListFromDB(
+    function(custListFromDB){ 
+      if (typeof customersDB !== 'undefined' && customersDB.length > 0) {
+        // the array is defined and has at least one element
+        _.uniq(customersDB);
+        io.sockets.emit('retreiveCustomerListFromDB',customersDB);
+
+      } else
+        for (var cust in custListFromDB) {
+        customersDB.push(custListFromDB[cust]);
+      }
+    })
+  });
     
 });
+
+var customersDB = new Array();
+var first = 'false';
+//array to keep track of customers enter/leave the store
+var custArr = new Array();
+//array to keep track of customers being helped at the store
+var custViewing = new Array();
 
 function inArray(needle, haystack) {
     var length = haystack.length;
@@ -162,12 +149,7 @@ function inArray(needle, haystack) {
     return false;
 }
 
-//array to keep track of customers enter/leave the store
-var custArr = new Array();
-//array to keep track of customers being helped at the store
-var helpedArr = new Array();
 
-var custViewing = new Array();
 
 function getCustomerListFromDB(callback){
   connection.query('SELECT * FROM Employees', function(err, rows) {
@@ -196,18 +178,17 @@ function getCustomerID(socket, ID) {
 
 
 function custHelped(socket,ID){
-			if( ID != null && typeof(helpedArr[ID]) != 'undefined') {		
+	if( ID != null && custArr[ID].helped == true) {		
 		//free memory somehow		
-		delete helpedArr[ID];
+		custArr[ID].helped = false;
 		io.sockets.emit('isHelped', false, ID); //customer will be marked as not helped
 	} else if (ID!=null) {
-		
-			helpedArr[ID] = ID;
-			io.sockets.emit('isHelped', true, ID); //customer will be marked as helped
-} else {
-				socket.emit('err', "wtf");
+		custArr[ID].helped = true;
+		io.sockets.emit('isHelped', true, ID); //customer will be marked as helped
+	} else {
+		socket.emit('err', "wtf");
 	}
-	}
+}
 
 
 	
@@ -221,8 +202,9 @@ function cusEnterLeave(socket, ID) {
 		var cust;
 		getCustomerFromDB(socket, ID, function(cust) {
 			if(cust.length > 0) {
-				custArr[ID] = cust[0];
-				io.sockets.emit('addCustomerToFeed', ID, custArr[ID]);
+				var time = new Date();
+				custArr[ID] = {cust: cust[0], time: time, helped: false};
+				io.sockets.emit('addCustomerToFeed', ID, custArr[ID].cust, custArr[ID].time);
 			} else {
 				socket.emit('err', "wtf");
 			}
@@ -251,37 +233,16 @@ function getCustomerFromDB(socket, ID, callback) {
 	}
 }
 
-function cusPage(socket, ID) {
+function getCustData(socket, ID) {
 	if (ID!=null) {
 		var cust;
-		getFullCustomerFromDB(socket, ID, function(cust) {
-		
-			if(cust.length > 0) {
-				socket.emit('getCust', ID, cust[0]);
-			} else {
-				socket.emit('err', "wtf");
-			}
-		});
-		//console.log("look here fuckface" + rows[0].empID);		
+		if(typeof(custArr[ID]) != 'undefined') {
+		  socket.emit('retrieveCustData', ID, custArr[ID].cust, custArr[ID].time);
+		}else {
+		  socket.emit('err', 'shit');
+		}	
 		
 	} else {
 		socket.emit('err', "no id");
 	}
 }
-
-function getFullCustomerFromDB(socket, ID, callback) {
-  
-    if(ID == null) {
-      socket.emit('err','FAG');
-      return;
-    } else {
-	connection.query('SELECT * FROM Employees WHERE empID = ' + ID, function(err, rows) {
-	   if (err) throw err;
-	  else if (rows == null) { socket.emit('err', 'seriouslyfuckyou'); }
-			else {
-				callback(rows);
-			}
-		});
-	}
-}
-

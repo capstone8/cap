@@ -15,16 +15,15 @@
 
 <script type="text/javascript">
 	  $('div:jqmData(role="page")').live('pagebeforeshow', function() {
-	  connect();
+	  connect("customer");
 	  
       });
-	</script>
+</script>
 
 <div id="customerPage" data-role="page" data-theme="c" data-add-back-btn="true">
 	<script src="/include.js"></script>
 	<script>
-	  connect();
-	  
+	  connect("customer");
 	</script>
 	
 	<div data-role="header" data-position="fixed">
