@@ -10,19 +10,12 @@
 </head> 
 
 <body> 
-<script>
-$( ":jqmData(role='page'):jqmData(cache='false')" )
-    .live(
-            "pagehide",
-            function() {
-                $(this).remove();
-            });
-</script>
+
 <div data-role="page" data-theme="c" data-add-back-btn="true">
 
 <script src="/include.js"></script>
 <script type="text/javascript">
-$.mobile.page.prototype.options.domCache = false;
+
 
         
        //alert(customerList.length);
@@ -43,7 +36,9 @@ $.mobile.page.prototype.options.domCache = false;
 	 var myArr = new Array();
  function displayListOfCustomers(custlist){
       custlist.sort(); //sort array alphabeticall      
-     // for (var cust in custlist[0]){    
+     // for (var cust in custlist[0]){
+     
+     $('#searchlist').html("");
     myArr =   $.unique(custlist);
    
     for (var i=0;i<myArr.length;i++){
