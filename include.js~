@@ -9,7 +9,6 @@
         socket = io.connect(null);
         switch (page) {
           case "customer":
-            socket.emit('getCustomerID');
             socket.on('retrieveCustData', function (ID, cust, time) {
               addCustomerData(ID, cust, time);
               custInfo = cust;
@@ -18,6 +17,7 @@
               custID = ID;
               socket.emit("getCustData",custID);
             });
+            socket.emit('getCustomerID');
             break;
           case "index":
             socket.on('removeCustomerFromFeed', function(ID) {removeCustomerFromFeed(ID);});
@@ -28,12 +28,44 @@
             socket.on('retrieveCustomerListFromFeed', function(list) {
               for (var cust in list) {
                 addCustomerToFeed(list[cust].cust.empID, list[cust].cust, list[cust].time);
+                changeHelped(list[cust].helped, list[cust].cust.empID);
               }
             });
+            socket.emit('getCustomerListFromDB');
             socket.emit('getCustomerListFromFeed');
             break;
           case "purchase_history":
-            //set up
+            socket.on('retrieveCustPurchaseHist', function (purchaseHistArr) {
+              printPurchaseHistory(purchaseHistArr);
+            });
+            socket.on('retrieveCustID', function(ID) { 
+              custID = ID;
+              socket.emit("getCustPurchaseHist",custID);
+            });
+            socket.emit('getCustomerID');
+            break;
+          case "search":
+            socket.on('retreiveCustomerListFromDB', function(custlist){
+              $("#searchlist").html("");
+              if (!_.isEmpty(custlist)){
+                _.uniq(custlist);
+                custlist.sort();
+                for (var cust in custlist) {
+                  addCustomerToSearchFeed(custlist[cust].empID, custlist[cust]);
+                }
+              }
+            });
+            socket.emit('getCustomerListFromDB');
+            break;
+          case "brands":  
+            socket.on('retrieveCustData', function (ID, cust, time) {
+              custInfo = cust;
+            });
+            socket.on('retrieveCustID', function(ID) { 
+              custID = ID;
+              socket.emit("getCustData",custID);
+            });
+            socket.emit('getCustomerID');
             break;
         }
 	firstconnect = false;
@@ -42,6 +74,29 @@
         socket.socket.reconnect();
       }
     }
+    
+    function printPurchaseHistory(purchaseHistArr) {
+      for (var i in purchaseHistArr) {
+        var purchaseInt = purchaseHistArr[i];
+        //print purchase instance date header
+        $("ul#purchase_history_list").append("<li id=\"purchase"+purchaseInst.purchaseInstID+"\" data-role=\"list-divider\">"+purchaseInst.purchaseDate+"></li>").listview('refresh');
+        for (var j in purchaseInst) {
+          var itemInst = purchaseInst[j];
+          $("ul#purchase_history_list").append("<li id=\"item"+itemInst.itemInstID+"\"<a href=\"#\"></a></li>").listview("refresh");
+          
+          
+          <li><a href="index.html">
+                                
+                                        <h3>Dress Shirt</h3>
+                                        <p><strong>Giorgio Armani</strong></p>
+                                        <p>15 - 34/35, Slim fit</p>
+                                        <p class="ui-li-aside"><strong>6:24</strong>PM</p>
+                                
+                        </a></li>
+        }  
+      }  
+      
+    }  
     
     function isHelped(ID){
         socket.emit('custHelped',ID);                       
@@ -57,6 +112,10 @@
     function addCustomerToFeed(ID, cust, time) {
       $('#t').prepend("<li id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picture + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview('refresh');
     }
+    
+    function addCustomerToSearchFeed(ID, cust) {
+      $('#searchlist').append("<li class='customer' id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\">" + cust.firstName + " " + cust.lastName +"</a></li>").listview('refresh');
+    }  
     
     function sendIdToCustomerPage(ID) {
       socket.emit("setCustomerID", ID);
@@ -75,7 +134,7 @@
     }
 
     function addCustomerData(ID, cust, time) {
-	$("h1").text(cust.firstName + " " + cust.lastName);
+	$("h1#customer").text(cust.firstName + " " + cust.lastName);
 	$(".time").text("Time in Store - " + time); 
     }
     

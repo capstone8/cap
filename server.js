@@ -115,16 +115,16 @@ io.sockets.on('connection', function(socket){
     //kill mysql connection upon socket disconnect
     connection.end();
   });
+  socket.on('getCustPurchaseHist', function(ID){getCustPurchaseHist(ID)});
   socket.on('setCustomerID', function(ID){setCustomerID(socket, ID);});
   socket.on('getCustomerID', function(ID){getCustomerID(socket, ID);});
   socket.on('getCustomerListFromFeed', function() {getCustomerListFromFeed(socket);});
   socket.on('getCustomerListFromDB',function(){getCustomerListFromDB(
-    function(custListFromDB){ 
+    function(custListFromDB){
       if (typeof customersDB !== 'undefined' && customersDB.length > 0) {
         // the array is defined and has at least one element
         _.uniq(customersDB);
         io.sockets.emit('retreiveCustomerListFromDB',customersDB);
-
       } else
         for (var cust in custListFromDB) {
         customersDB.push(custListFromDB[cust]);
@@ -140,6 +140,42 @@ var first = 'false';
 var custArr = new Array();
 //array to keep track of customers being helped at the store
 var custViewing = new Array();
+
+function getCustPurchaseHist(ID) {
+  if(ID!==null) {
+    connection.query('SELECT * FROM Purchase_Inst WHERE custID = '+ID, function(err,rows) {
+      if (err) throw err;
+      else if (rows == null) {socket.emit('err', 'uhoh'); }
+      else {
+        var purchaseInstArr = new Array();
+        for(var i in rows) {
+          if(rows[i].purchaseInstID!==null) {
+            connection.query('SELECT * FROM Item_Inst WHERE purchaseInstID = '+rows[i].purchaseInstID, function(err2, itemInst) {
+              if(err2) throw err2;
+              else if (itemInst==null) {socket.emit('err', 'uhohhh'); }
+              else {
+                var itemInstArr = new Array();
+                for (var j in itemInst) {
+                  connection.query('SELECT * FROM Item WHERE ItemID = '+itemInst[j].itemID, function err3, item) {
+                    if(err3) throw err;
+                    else if (item==null) {socket.emit('err', 'err3');}
+                    else {
+                      itemInst[j].category = item[0].category;
+                      itemInst[j].brand = item[0].brand;
+                    }
+                  }
+                  itemInstArr.push(itemInst[j]);
+                }  
+              }  
+            });  
+          }
+          purchaseInstArr.push(itemInstArr);
+        }  
+      }
+    });
+    socket.emit("receiveCustPurchaseHist", purchaseInstArr);
+  }  
+}
 
 function inArray(needle, haystack) {
     var length = haystack.length;
@@ -237,7 +273,13 @@ function getCustData(socket, ID) {
 		if(typeof(custArr[ID]) != 'undefined') {
 		  socket.emit('retrieveCustData', ID, custArr[ID].cust, custArr[ID].time);
 		}else {
-		  socket.emit('err', 'shit');
+		  getCustomerFromDB(socket, ID, function(cust) {
+                        if(cust.length > 0) {
+                                io.sockets.emit('retrieveCustData', ID, cust[0], "N/A");
+                        } else {
+                                socket.emit('err', "wtf");
+                        }
+                });
 		}	
 		
 	} else {

@@ -23,7 +23,7 @@
 <div id="customerPage" data-role="page" data-theme="c" data-add-back-btn="true">
 	<script src="/include.js"></script>
 	<script>
-	  connect();
+	  connect("customer");
 	</script>
 	
 	<div data-role="header" data-position="fixed">
@@ -31,7 +31,7 @@
 	</div><!-- /header -->
 	
 	<div id="content" data-role="content">
-	<h1>Placeholder</h1>
+	<h1 id="customer">Placeholder</h1>
 	<h3 class="time">Time in store - N/A</h3>
 		
 		<ul data-role="listview" data-inset="true" >

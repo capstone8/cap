@@ -16,45 +16,8 @@
 <script src="/include.js"></script>
 <script type="text/javascript">
 
-        
-       //alert(customerList.length);
-       var customerList = new Array();
-
-      connect();
-       socket.on('retreiveCustomerListFromDB', function(custlist){
-        
-      if (!_.isEmpty(custlist)){
-	    _.uniq(custlist);
-	    displayListOfCustomers(custlist);
-	}
-	
-	});
-	
-
-	
-	 var myArr = new Array();
- function displayListOfCustomers(custlist){
-      custlist.sort(); //sort array alphabeticall      
-     // for (var cust in custlist[0]){
-     
-     $('#searchlist').html("");
-    myArr =   $.unique(custlist);
-   
-    for (var i=0;i<myArr.length;i++){
-	$('#searchlist').append("<li class='customer' id=\""+'cust' + myArr[i].empID + "\"><a onClick=\"sendIdToCustomerPage("+myArr[i].empID+")\" href=\"#\">" + myArr[i].firstName + " " + myArr[i].lastName +"</a></li>").listview('refresh');
-     }
-   
-    }
-  
-    function sendIdToCustomerPage(ID) {
-	  socket.emit("setCustomerID", ID);
-	  $.mobile.changePage( "/customer.html", {
-	    role: "page",
-	    type: "get",
-	    data:{ID:ID},
-	    transition: "slide"
-	  });
-	}
+      connect("search");
+       
 
 </script>
 	<div data-role="header" data-position="fixed"  data-add-back-btn="true"  att>
