@@ -9,7 +9,6 @@
         socket = io.connect(null);
         switch (page) {
           case "customer":
-            socket.emit('getCustomerID');
             socket.on('retrieveCustData', function (ID, cust, time) {
               addCustomerData(ID, cust, time);
               custInfo = cust;
@@ -18,6 +17,7 @@
               custID = ID;
               socket.emit("getCustData",custID);
             });
+            socket.emit('getCustomerID');
             break;
           case "index":
             socket.on('removeCustomerFromFeed', function(ID) {removeCustomerFromFeed(ID);});
