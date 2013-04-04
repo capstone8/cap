@@ -1,0 +1,17 @@
+var mysql      = require('mysql');
+var connection = mysql.createConnection({
+    host     : 'dbhost-mysql.cs.missouri.edu',
+    user     : 'cs4970f12grp2',
+    password : 'KUPDcAA4',
+    database : 'cs4970f12grp2'
+});
+
+connection.connect();
+
+connection.query('SELECT * FROM Employees', function(err, rows, fields) {
+  if (err) throw err;
+
+  console.log('The solution is: ', rows);
+});
+
+connection.end();

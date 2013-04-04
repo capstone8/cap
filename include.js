@@ -24,18 +24,18 @@
             socket.on('addCustomerToFeed', function(ID, cust, time) {addCustomerToFeed(ID, cust, time);});
             socket.on('isHelped',function(ID, helped){changeHelped(ID,helped); });
             //get list of customers from the database for the seaarch page in an array of customers
-            // socket.on('retrieveCustomerListFromDB', function(custlist){displayListOfCustomers(custlist)});
+            //socket.on('retrieveCustomerListFromDB', function(custlist){displayListOfCustomers(custlist)});
             socket.on('retrieveCustomerListFromFeed', function(list) {
               for (var cust in list) {
-                addCustomerToFeed(list[cust].cust.empID, list[cust].cust, list[cust].time);
-                changeHelped(list[cust].helped, list[cust].cust.empID);
+                addCustomerToFeed(list[cust].cust.personalID, list[cust].cust, list[cust].time);
+                changeHelped(list[cust].helped, list[cust].cust.personalID);
               }
             });
             socket.emit('getCustomerListFromDB');
             socket.emit('getCustomerListFromFeed');
             break;
           case "purchase_history":
-            socket.on('retrieveCustPurchaseHist', function (purchaseHistArr) {
+            socket.on('receiveCustPurchaseHist', function (purchaseHistArr) {
               printPurchaseHistory(purchaseHistArr);
             });
             socket.on('retrieveCustID', function(ID) { 
@@ -51,7 +51,7 @@
                 _.uniq(custlist);
                 custlist.sort();
                 for (var cust in custlist) {
-                  addCustomerToSearchFeed(custlist[cust].empID, custlist[cust]);
+                  addCustomerToSearchFeed(custlist[cust].custID, custlist[cust]);
                 }
               }
             });
@@ -76,16 +76,18 @@
     }
     
     function printPurchaseHistory(purchaseHistArr) {
+     
       for (var i in purchaseHistArr) {
-        var purchaseInt = purchaseHistArr[i];
+        var purchaseInst = purchaseHistArr[i];
+	alert (purchaseInst.purchaseInstID);
         //print purchase instance date header
-        $("ul#purchase_history_list").append("<li id=\"purchase"+purchaseInst.purchaseInstID+"\" data-role=\"list-divider\">"+purchaseInst.purchaseDate+"></li>").listview('refresh');
+        $("#purchase_history_list").append("<li id=\"purchase"+purchaseInst.purchaseInstID+"\" data-role=\"list-divider\">"+purchaseInst.purchaseDate+"></li>").listview('refresh');
         for (var j in purchaseInst) {
           var itemInst = purchaseInst[j];
-          $("ul#purchase_history_list").append("<li id=\"item"+itemInst.itemInstID+"\"<a href=\"#\"><h3>"+itemInst.category+"</h3><p><strong>"+itemInst.brand+"</strong></p><p>"+itemInst.clotheSize+"</p></a></li>").listview("refresh");
+          $("#purchase_history_list").append("<li id=\"item"+itemInst.itemInstID+"\"<a href=\"#\"><h3>"+itemInst.category+"</h3><p><strong>"+itemInst.brand+"</strong></p><p>"+itemInst.clotheSize+"</p></a></li>").listview("refresh");
         }  
       }  
-      $("ul#purchase_history_list").listview("refresh");
+      $("#purchase_history_list").listview("refresh");
     }  
     
     function isHelped(ID){
@@ -100,7 +102,7 @@
     }
 
     function addCustomerToFeed(ID, cust, time) {
-      $('#t').prepend("<li id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picture + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview('refresh');
+      $('#t').prepend("<li id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picPath + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview('refresh');
     }
     
     function addCustomerToSearchFeed(ID, cust) {
