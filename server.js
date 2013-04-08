@@ -115,7 +115,7 @@ io.sockets.on('connection', function(socket){
     //kill mysql connection upon socket disconnect
     connection.end();
   });
-  socket.on('getCustPurchaseHist', function(ID){getCustPurchaseHist(ID,socket)});
+  socket.on('getCustPurchaseHist', function(ID){getCustPurchaseHist(socket,ID)});
   socket.on('setCustomerID', function(ID){setCustomerID(socket, ID);});
   socket.on('getCustomerID', function(ID){getCustomerID(socket, ID);});
   socket.on('getCustomerListFromFeed', function() {getCustomerListFromFeed(socket);});
@@ -144,7 +144,74 @@ var custViewing = new Array();
 // var itemInstArr = new Array();
 var itemInstArr = new Array();
 var purchaseInstArr = new Array();
-function getCustPurchaseHist(ID,socket) {
+
+function getPurchaseInstFromDB(socket, ID, callback) {
+  if(ID !== null) {
+    connection.query('SELECT * FROM Purchase_Inst WHERE custID = ' + ID, function(err, rows) {
+      if (err) throw err;
+      else if (rows==null) { socket.emit('err', 'ERR: Purchase_Inst query was null'); }
+      else {
+	callback(rows);
+      }
+    });
+  }	  
+}
+function getItemInstFromDB (socket,ID,callback){
+  var itemInstArray = [];
+  getPurchaseInstFromDB(socket,ID,function(rows){
+    
+    for (var i in rows){
+      if (rows[i].purchaseInstID!==null){
+	connection.query('SELECT * FROM Item_Inst WHERE purchaseInstID = ' + rows[i].purchaseInstID, function(err2, itemInst) {
+              if(err2) throw err2;
+              else if (itemInst==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
+              else {
+		itemInstArray.push(itemInst);
+		console.log(itemInstArray.length);
+	      }//end else
+	});//end query 
+      }//end if
+    }//end for 
+    
+  });
+  callback(itemInstArray);
+}
+
+function getItemFromDB(socket,ID,callback){
+   var purchaseInstArray = []; 
+  getItemInstFromDB(socket,ID,function(itemInst){
+  
+  for (var j in itemInst) {
+    if (itemInst[j].itemID!==null){
+    console.log(itemInst[0]);
+    connection.query('SELECT * FROM Item WHERE itemID = '+ itemInst[j].itemID, function (err3, item) {
+      if(err3) throw err;
+      else if (item==null) {socket.emit('err', 'err3');}
+      else {
+	itemInst[j].category = item[0].category;
+	itemInst[j].brand = item[0].brand;  
+	purchaseInstArray.push(itemInst[j]);
+	console.log("purchaseInstArray: "+purchaseInstArray.length);
+      }
+    });//end for (var j in itemInst)
+   
+    }
+  }//end for
+ 
+    
+  });
+ callback(purchaseInstArray);
+}
+function getCustPurchaseHist(socket,ID){
+  
+  getItemFromDB(socket,ID,function(purchaseInstArray){
+      socket.emit("receiveCustPurchaseHist",purchaseInstArray);
+  });
+  
+}
+
+
+/*function getCustPurchaseHist(ID,socket) {
   if(ID!==null) {
     connection.query('SELECT * FROM Purchase_Inst WHERE custID = '+ID, function(err,rows) {
       if (err) throw err;
@@ -163,28 +230,36 @@ function getCustPurchaseHist(ID,socket) {
                     if(err3) throw err;
                     else if (item==null) {socket.emit('err', 'err3');}
                     else {
-                      itemInst[j].category = item[0].category;
-                      itemInst[j].brand = item[0].brand;
+		      for (var k=0;k<item.length;k++){
+                      itemInst[j].category = item[k].category;
+                      itemInst[j].brand = item[k].brand;
+		      console.log(JSON.stringify(item[k]));
+		      }
+		      itemInstArr.push(JSON.stringify(itemInst[j]));
                     }
-                    socket.emit("receiveCustPurchaseHist", item);
-                  }); //fixed!!!
-                  itemInstArr.push(itemInst[j]);
-		  console.log(itemInst[j]);
-                }  
+                     
+                   // socket.emit("receiveCustPurchaseHist", item);
+                    });
+                 
+		  console.log(JSON.stringify(itemInst[j]));
+                
+		   
+		  }  
               }
             });  
           }
-          purchaseInstArr.push(itemInstArr);
+          purchaseInstArr.push(JSON.stringify(itemInstArr));
 	 //console.log(itemInstArr);
         }  
       }
       //socket.emit("receiveCustPurchaseHist", rows);
     });
-    //socket.emit("receiveCustPurchaseHist", purchaseInstArr);
-    //console.log(purchaseInstArr);
+    socket.emit("receiveCustPurchaseHist", purchaseInstArr);
+    console.log("HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    console.log(JSON.stringify(purchaseInstArr));
 
   }  
-}
+}*/
 
 function inArray(needle, haystack) {
     var length = haystack.length;
@@ -264,7 +339,7 @@ function cusEnterLeave(socket, ID) {
 function getCustomerFromDB(socket, ID, callback) {
 
 	if(ID == null) {
-		socket.emit('err', "NO IDEA WHY YOU WOULD TRY AND FUCK ME");
+		socket.emit('err', "error getCustomerFromDB: ID = NULL");
 		return;
 	} else {
 		connection.query('SELECT * FROM Customer WHERE custID = ' + ID, function(err, rows) {
