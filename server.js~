@@ -151,7 +151,10 @@ function getPurchaseInstFromDB(socket, ID, callback) {
       if (err) throw err;
       else if (rows==null) { socket.emit('err', 'ERR: Purchase_Inst query was null'); }
       else {
-	callback(rows);
+        console.log("number of purchase instances: " + rows.length);
+        for (var i in rows) {
+          callback(rows);
+        }
       }
     });
   }	  
@@ -166,22 +169,26 @@ function getItemInstFromDB (socket,ID,callback){
               if(err2) throw err2;
               else if (itemInst==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
               else {
-		itemInstArray.push(itemInst);
-		console.log(itemInstArray.length);
+                console.log("number of item instances for purchase instance " + rows[i].purchaseInstID + ": " + itemInst.length);
+                for (var j in itemInst) {
+                  itemInstArray.push(itemInst[j]);
+                  console.log(itemInstArray.length);
+                }
+                callback(itemInstArray);
 	      }//end else
 	});//end query 
       }//end if
     }//end for 
-    
   });
-  callback(itemInstArray);
+  
 }
 
 function getItemFromDB(socket,ID,callback){
-   var purchaseInstArray = []; 
+   var purchaseInstArray = [];
   getItemInstFromDB(socket,ID,function(itemInst){
   
   for (var j in itemInst) {
+    if (itemInst[j].itemID!==null){
     console.log(itemInst[0]);
     connection.query('SELECT * FROM Item WHERE itemID = '+ itemInst[j].itemID, function (err3, item) {
       if(err3) throw err;
@@ -194,7 +201,7 @@ function getItemFromDB(socket,ID,callback){
       }
     });//end for (var j in itemInst)
    
-   
+    }
   }//end for
  
     
