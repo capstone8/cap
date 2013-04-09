@@ -35,11 +35,17 @@
             socket.emit('getCustomerListFromFeed');
             break;
           case "purchase_history":
+            socket.on('retrieveCustData', function (ID, cust, time) {
+              custInfo = cust;
+              $("title#pp").text("Past Purchases - " + cust.firstName + " " + cust.lastName);
+            });
             socket.on('receiveCustPurchaseHist', function (purchaseHistArr) {
+              $("#purchase_history_list").html("");
               printPurchaseHistory(purchaseHistArr);
             });
             socket.on('retrieveCustID', function(ID) { 
               custID = ID;
+              socket.emit("getCustData",custID);
               socket.emit("getCustPurchaseHist",custID);
             });
             socket.emit('getCustomerID');
@@ -76,17 +82,17 @@
     }
     
     function printPurchaseHistory(purchaseHistArr) {
-     
+      var purchaseID = -1;
       for (var i in purchaseHistArr) {
-	alert(1);
+        
         var purchaseInst = purchaseHistArr[i];
-	alert (purchaseInst.purchaseInstID);
-        //print purchase instance date header
-        $("#purchase_history_list").append("<li id=\"purchase"+purchaseInst.purchaseInstID+"\" data-role=\"list-divider\">"+purchaseInst.purchaseDate+"></li>").listview('refresh');
-        for (var j in purchaseInst) {
-          var itemInst = purchaseInst[j];
-          $("#purchase_history_list").append("<li id=\"item"+itemInst.itemInstID+"\"<a href=\"#\"><h3>"+itemInst.category+"</h3><p><strong>"+itemInst.brand+"</strong></p><p>"+itemInst.clotheSize+"</p></a></li>").listview("refresh");
+        
+        if(purchaseID!==purchaseInst.purchaseID){
+          purchaseID = purchaseInst.purchaseID;
+          $("#purchase_history_list").append("<li id=\"purchase"+purchaseInst.purchaseInstID+"\" data-role=\"list-divider\">"+purchaseInst.purchaseDate+"></li>").listview('refresh');
         }  
+
+        $("#purchase_history_list").append("<li id=\"item"+purchaseInst.itemInstID+"\"<a href=\"#\"><h3>"+purchaseInst.category+"</h3><p><strong>"+purchaseInst.brand+"</strong></p><p>"+purchaseInst.clotheSize+"</p></a></li>").listview("refresh");
       }  
       $("#purchase_history_list").listview("refresh");
     }  

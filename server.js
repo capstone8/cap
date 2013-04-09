@@ -142,130 +142,18 @@ var custArr = new Array();
 var custViewing = new Array();
 // var purchaseInstArr = new Array();
 // var itemInstArr = new Array();
-var itemInstArr = new Array();
 var purchaseInstArr = new Array();
 
-function getPurchaseInstFromDB(socket, ID, callback) {
-  if(ID !== null) {
-    connection.query('SELECT * FROM Purchase_Inst WHERE custID = ' + ID, function(err, rows) {
-      if (err) throw err;
-      else if (rows==null) { socket.emit('err', 'ERR: Purchase_Inst query was null'); }
-      else {
-        console.log("number of purchase instances: " + rows.length);
-        for (var i in rows) {
-          callback(rows);
-        }
-      }
-    });
-  }	  
-}
-function getItemInstFromDB (socket,ID,callback){
-  var itemInstArray = [];
-  getPurchaseInstFromDB(socket,ID,function(rows){
-    
-    for (var i in rows){
-      if (rows[i].purchaseInstID!==null){
-	connection.query('SELECT * FROM Item_Inst WHERE purchaseInstID = ' + rows[i].purchaseInstID, function(err2, itemInst) {
-              if(err2) throw err2;
-              else if (itemInst==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
-              else {
-                console.log("number of item instances for purchase instance " + rows[i].purchaseInstID + ": " + itemInst.length);
-                for (var j in itemInst) {
-                  itemInstArray.push(itemInst[j]);
-                  console.log(itemInstArray.length);
-                }
-                callback(itemInstArray);
-	      }//end else
-	});//end query 
-      }//end if
-    }//end for 
-  });
-  
-}
 
-function getItemFromDB(socket,ID,callback){
-   var purchaseInstArray = [];
-  getItemInstFromDB(socket,ID,function(itemInst){
-  
-  for (var j in itemInst) {
-    if (itemInst[j].itemID!==null){
-    console.log(itemInst[0]);
-    connection.query('SELECT * FROM Item WHERE itemID = '+ itemInst[j].itemID, function (err3, item) {
-      if(err3) throw err;
-      else if (item==null) {socket.emit('err', 'err3');}
-      else {
-	itemInst[j].category = item[0].category;
-	itemInst[j].brand = item[0].brand;  
-	purchaseInstArray.push(itemInst[j]);
-	console.log("purchaseInstArray: "+purchaseInstArray.length);
-      }
-    });//end for (var j in itemInst)
-   
-    }
-  }//end for
- 
-    
-  });
- callback(purchaseInstArray);
-}
 function getCustPurchaseHist(socket,ID){
-  
-  getItemFromDB(socket,ID,function(purchaseInstArray){
-      socket.emit("receiveCustPurchaseHist",purchaseInstArray);
-  });
-  
+  connection.query('SELECT * FROM Item_Inst INNER JOIN Item ON Item_Inst.itemID = Item.itemID INNER JOIN Purchase_Inst ON Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID', function(err2, rows) {
+    if(err2) throw err2;
+    else if (rows==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
+    else {
+      socket.emit("receiveCustPurchaseHist",rows);
+    }//end else
+  });//end query 
 }
-
-
-/*function getCustPurchaseHist(ID,socket) {
-  if(ID!==null) {
-    connection.query('SELECT * FROM Purchase_Inst WHERE custID = '+ID, function(err,rows) {
-      if (err) throw err;
-      else if (rows == null) {socket.emit('err', 'uhoh'); }
-      else {
-       
-        for(var i in rows) {
-          if(rows[i].purchaseInstID!==null) {
-            connection.query('SELECT * FROM Item_Inst WHERE purchaseInstID = '+rows[i].purchaseInstID, function(err2, itemInst) {
-              if(err2) throw err2;
-              else if (itemInst==null) {socket.emit('err', 'uhohhh'); }
-              else {
-		 
-                for (var j in itemInst) {
-                  connection.query('SELECT * FROM Item WHERE itemID = '+ itemInst[j].itemID, function (err3, item) {
-                    if(err3) throw err;
-                    else if (item==null) {socket.emit('err', 'err3');}
-                    else {
-		      for (var k=0;k<item.length;k++){
-                      itemInst[j].category = item[k].category;
-                      itemInst[j].brand = item[k].brand;
-		      console.log(JSON.stringify(item[k]));
-		      }
-		      itemInstArr.push(JSON.stringify(itemInst[j]));
-                    }
-                     
-                   // socket.emit("receiveCustPurchaseHist", item);
-                    });
-                 
-		  console.log(JSON.stringify(itemInst[j]));
-                
-		   
-		  }  
-              }
-            });  
-          }
-          purchaseInstArr.push(JSON.stringify(itemInstArr));
-	 //console.log(itemInstArr);
-        }  
-      }
-      //socket.emit("receiveCustPurchaseHist", rows);
-    });
-    socket.emit("receiveCustPurchaseHist", purchaseInstArr);
-    console.log("HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    console.log(JSON.stringify(purchaseInstArr));
-
-  }  
-}*/
 
 function inArray(needle, haystack) {
     var length = haystack.length;
