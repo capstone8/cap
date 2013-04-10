@@ -1,0 +1,56 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+        <title>Item Search</title> 
+        <meta name="viewport" content="width=device-width, initial-scale=1"> 
+        <link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+        <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+        <script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+        <script src="http://underscorejs.org/underscore-min.js"></script>
+</head> 
+
+<body> 
+
+<div data-role="page" data-theme="c" data-add-back-btn="true">
+
+<script src="/include.js"></script>
+<script type="text/javascript">
+
+      connect("item_search");
+       
+
+</script>
+        <div data-role="header" data-position="fixed"  data-add-back-btn="true"  att>
+                <h1>Item Search</h1>
+        </div><!-- /header -->
+
+        <div data-role="content">       
+                <div class="item_searchlist" data-role="collapsible-set" data-inset="false" data-filter="true">
+                  <!--<div data-role="collapsible">
+                      <h3>Animals</h3>
+                      <ul data-role="listview" data-inset="false">
+                          <li>Cats</li>
+                          <li>Dogs</li>
+                          <li>Lizards</li>
+                          <li>Snakes</li>
+                      </ul>
+                  </div>-->
+                </div>
+                
+                <!--<ul id="item_searchlist" data-role="listview" data-inset="false" data-filter="true" >
+                        
+                </ul>-->
+
+        </div><!-- /content -->
+                <!--Footer-->
+                <div data-role="footer" data-position="fixed">          
+                        <div data-role="navbar">
+                                <ul>
+                                        <li><a href="index.html" data-icon="home" data-iconpos="bottom" data-transition="pop">Home</a></li>
+                                </ul>
+                        </div><!-- /navbar -->
+                </div><!-- /footer -->
+</div><!-- /page -->
+
+</body>
+</html>

@@ -72,6 +72,22 @@ server = http.createServer(function(req, res) {
         res.end();
       });
       break;
+    case '/shopping_cart.html':
+      fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+      break;
+    case '/item_search.html':
+      fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+      break;  
     case '/include.js':
       fs.readFile(__dirname + path, function(err, data){
         if (err) return send404(res);
@@ -115,6 +131,8 @@ io.sockets.on('connection', function(socket){
     //kill mysql connection upon socket disconnect
     connection.end();
   });
+  socket.on('getItemAttributes', function(ID){getItemAttributes(socket, ID);});
+  socket.on('getItemListFromDB', function(){getItemListFromDB(socket);});
   socket.on('getCustPurchaseHist', function(ID){getCustPurchaseHist(socket,ID)});
   socket.on('setCustomerID', function(ID){setCustomerID(socket, ID);});
   socket.on('getCustomerID', function(ID){getCustomerID(socket, ID);});
@@ -144,9 +162,29 @@ var custViewing = new Array();
 // var itemInstArr = new Array();
 var purchaseInstArr = new Array();
 
+function getItemListFromDB(socket) {
+  connection.query('SELECT * FROM Item', function(err, rows) {
+    if(err) throw err;
+    else if (rows==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
+    else {
+      socket.emit("retrieveItemListFromDB",rows);
+    }//end else
+  });//end query 
+  
+}  
+
+function getItemAttributes(socket, ID) {
+  connection.query('SELECT * FROM Item_Attribute WHERE itemID = ' + ID, function(err, rows) {
+    if(err) throw err;
+    else if (rows==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
+    else {
+      socket.emit("retrieveItemAttributes", ID, rows);
+    }//end else
+  });//end query 
+}  
 
 function getCustPurchaseHist(socket,ID){
-  connection.query('SELECT * FROM Item_Inst INNER JOIN Item ON Item_Inst.itemID = Item.itemID INNER JOIN Purchase_Inst ON Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID', function(err2, rows) {
+  connection.query('SELECT * FROM Item_Inst INNER JOIN Item ON Item_Inst.itemID = Item.itemID INNER JOIN Purchase_Inst ON Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID WHERE Purchase_Inst.custID = ' +ID, function(err2, rows) {
     if(err2) throw err2;
     else if (rows==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
     else {

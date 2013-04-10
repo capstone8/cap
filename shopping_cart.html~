@@ -1,0 +1,53 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+        <title>Shopping Cart</title> 
+        <meta name="viewport" content="width=device-width, initial-scale=1"> 
+</head> 
+<body> 
+
+                <link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+        <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+        <script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="http://underscorejs.org/underscore-min.js"></script>
+
+<script type="text/javascript">
+ 
+ $('div:jqmData(role="page")').live('pagebeforeshow', function() {
+      connect();  
+ });
+</script>
+
+<div id="shopping_cart" data-role="page" data-theme="c" data-add-back-btn="true">
+<script src="/include.js"></script>
+<script>
+  connect("shopping_cart");
+</script>
+        <div data-role="header" data-position="fixed">
+                <h1 id="pp">Past Purchases - N/A</h1>
+        </div><!-- /header -->
+
+        <div id="content" data-role="content">
+        <ul id="shopping_cart_list" data-role="listview" data-theme="d" data-divider-theme="d">
+                        <li data-role="list-divider">Friday, October 8, 2012 <span class="ui-li-count">2</span></li>
+                        <li><a href="index.html">
+                                
+                        </a></li>
+                        
+                </ul>
+
+        </div><!-- /content -->
+                <!--Footer-->
+                <div data-role="footer" data-position="fixed">          
+                        <div data-role="navbar">
+                                <ul>
+                                        <li><a href="index.html" data-icon="home" data-iconpos="bottom" data-transition="pop">Home</a></li>
+                                        <li><a onClick="loadPage('itemSearch')" href="#" data-icon="search" data-iconpos="bottom" data-transition="slideup">Search</a></li>
+                                </ul>
+                        </div><!-- /navbar -->
+                </div><!-- /footer -->
+</div><!-- /page -->
+
+</body>
+</html>

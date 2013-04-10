@@ -50,6 +50,17 @@
             });
             socket.emit('getCustomerID');
             break;
+          case "shopping_cart":
+            socket.on('receiveCustExistingCart', function(cart) {
+              $("#shopping_cart_list").html("");
+              displayItemsInCart(cart);
+            });
+            socket.on('retrieveCustID', function(ID) { 
+              custID = ID;
+              socket.emit('getCustExistingCart', custID);
+            });
+            socket.emit('getCustomerID');
+            break;
           case "search":
             socket.on('retreiveCustomerListFromDB', function(custlist){
               $("#searchlist").html("");
@@ -62,6 +73,30 @@
               }
             });
             socket.emit('getCustomerListFromDB');
+            break;
+          case "item_search":
+            socket.on('retrieveItemAttributes', function(ID, attributelist) {
+              $("ul#item"+ID).html("");
+              if(!_.isEmpty(attributelist)){
+                _.uniq(attributelist);
+                attributelist.sort();
+                for (var att in attributelist) {
+                  addAttributeToItem(ID, attributelist[att].itemAttID, attributelist[att]);
+                }
+              }
+              
+            });  
+            socket.on('retrieveItemListFromDB', function(itemlist){
+              $("#item_searchlist").html("");
+              if(!_.isEmpty(itemlist)){
+                _.uniq(itemlist);
+                itemlist.sort();
+                for (var item in itemlist) {
+                  addItemToSearchFeed(itemlist[item].itemID, itemlist[item]);
+                }
+              }
+            });
+            socket.emit('getItemListFromDB');
             break;
           case "brands":  
             socket.on('retrieveCustData', function (ID, cust, time) {
@@ -80,6 +115,24 @@
         socket.socket.reconnect();
       }
     }
+    
+    function addAttributeToItem(ID, attID, attribute) {
+      var $ul = $('ul#item'+ID);
+      $ul.append('<li>'+attribute.color+' - '+attribute.clotheSize+'</li>').listview();
+      if ($ul.hasClass('ui-listview')) {
+          $ul.listview('refresh');
+      } else {
+          $ul.trigger('create');
+      }
+    }  
+    
+    function addItemToSearchFeed(ID, item) {
+      $('#item_searchlist').append("<div data-role=\"collapsible\" data-inset\"false\"><h3 onClick=\"loadItemAttributes("+ID+")\">" + item.category + " - " + item.brand + "</h3><ul id=\"item"+ID+"\" data-role=\"listview\" data-inset=\"false\"></ul></div>").collapsibleset("refresh");
+    }
+    
+    function loadItemAttributes(itemID) {
+      socket.emit("getItemAttributes", itemID);
+    }  
     
     function printPurchaseHistory(purchaseHistArr) {
       var purchaseID = -1;
@@ -168,7 +221,7 @@
 	  });
 	  break;
 	case 'search':
-	socket.emit("getCustomerListFromDB");
+	//socket.emit("getCustomerListFromDB");
 	$.mobile.changePage( "/search.html", {
 	    role: "page",
 	    type: "get",
@@ -176,6 +229,24 @@
 	    transition: "slide"
 	  });
 	  break;
+        case 'item_search':
+        //socket.emit("getItemListFromDB");
+        $.mobile.changePage( "/item_search.html", {
+            role: "page",
+            type: "get",
+            data:{ID:custID},
+            transition: "slide"
+          });
+          break;
+        case 'shopping_cart':
+        socket.emit("setCustomerID", custID);
+        $.mobile.changePage( "/shopping_cart.html", {
+            role: "page",
+            type: "get",
+            data:{ID:custID},
+            transition: "slide"
+          });
+          break;
      }
       
     }

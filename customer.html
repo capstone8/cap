@@ -19,7 +19,7 @@
       });
 </script>
 
-<div id="customerPage" data-role="page" data-theme="c" data-add-back-btn="true">
+<div id="customerPage" data-role="page" data-theme="c" data-add-back-btn="true">        
 	<script src="/include.js"></script>
 	<script>
 	  connect("customer");
@@ -27,6 +27,7 @@
 	
 	<div data-role="header" data-position="fixed">
 		<h1>Customer Information</h1>
+		<a class="ui-btn-right" href="#" onClick="loadPage('shopping_cart')" data-role="button" data-mini="true" data-inline="true" data-icon="cart" data-theme="b">Place order</a>
 	</div><!-- /header -->
 	
 	<div id="content" data-role="content">

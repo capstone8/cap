@@ -72,6 +72,22 @@ server = http.createServer(function(req, res) {
         res.end();
       });
       break;
+    case '/shopping_cart.html':
+      fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+      break;
+    case '/item_search.html':
+      fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+      break;  
     case '/include.js':
       fs.readFile(__dirname + path, function(err, data){
         if (err) return send404(res);
@@ -115,6 +131,8 @@ io.sockets.on('connection', function(socket){
     //kill mysql connection upon socket disconnect
     connection.end();
   });
+  socket.on('getItemAttributes', function(ID){getItemAttributes(socket, ID);});
+  socket.on('getItemListFromDB', function(){getItemListFromDB(socket);});
   socket.on('getCustPurchaseHist', function(ID){getCustPurchaseHist(socket,ID)});
   socket.on('setCustomerID', function(ID){setCustomerID(socket, ID);});
   socket.on('getCustomerID', function(ID){getCustomerID(socket, ID);});
@@ -144,9 +162,29 @@ var custViewing = new Array();
 // var itemInstArr = new Array();
 var purchaseInstArr = new Array();
 
+function getItemListFromDB(socket) {
+  connection.query('SELECT * FROM Item', function(err, rows) {
+    if(err) throw err;
+    else if (rows==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
+    else {
+      socket.emit("retrieveItemListFromDB",rows);
+    }//end else
+  });//end query 
+  
+}  
+
+function getItemAttributes(socket, ID) {
+  connection.query('SELECT * FROM Item_Attribute WHERE itemID = ' + ID, function(err, rows) {
+    if(err) throw err;
+    else if (rows==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
+    else {
+      socket.emit("retrieveItemAttributes",rows);
+    }//end else
+  });//end query 
+}  
 
 function getCustPurchaseHist(socket,ID){
-  connection.query('SELECT * FROM Item_Inst INNER JOIN Item ON Item_Inst.itemID = Item.itemID INNER JOIN Purchase_Inst ON Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID', function(err2, rows) {
+  connection.query('SELECT * FROM Item_Inst INNER JOIN Item ON Item_Inst.itemID = Item.itemID INNER JOIN Purchase_Inst ON Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID WHERE Purchase_Inst.custID = ' +ID, function(err2, rows) {
     if(err2) throw err2;
     else if (rows==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
     else {
@@ -154,82 +192,6 @@ function getCustPurchaseHist(socket,ID){
     }//end else
   });//end query 
 }
-/*
-function getItemFromDB(socket,ID,callback){
-  getItemInstFromDB(socket,ID,function(itemInst, i, final){
-  for (var j in itemInst) {
-    if (itemInst[j].itemID!==null){
-    connection.query('SELECT * FROM Item WHERE itemID = '+ itemInst[j].itemID, function (err3, item) {
-      if(err3) throw err;
-      else if (item==null) {socket.emit('err', 'err3');}
-      else {
-	itemInst[j].category = item[0].category;
-	itemInst[j].brand = item[0].brand;
-	purchaseInstArr.push(itemInst[j]);
-        console.log(itemInst[j]);
-	console.log("purchaseInstArray: "+purchaseInstArr.length);
-      }
-      if((purchaseInstArr.length-1 == final) && (itemInst)) {
-        console.log("end is : " + j + " and end2 is: " + i);
-        callback();
-      }
-    });//end for (var j in itemInst)
-   
-    }
-  }//end for;
-  });
-}*/
-
-
-/*function getCustPurchaseHist(ID,socket) {
-  if(ID!==null) {
-    connection.query('SELECT * FROM Purchase_Inst WHERE custID = '+ID, function(err,rows) {
-      if (err) throw err;
-      else if (rows == null) {socket.emit('err', 'uhoh'); }
-      else {
-       
-        for(var i in rows) {
-          if(rows[i].purchaseInstID!==null) {
-            connection.query('SELECT * FROM Item_Inst WHERE purchaseInstID = '+rows[i].purchaseInstID, function(err2, itemInst) {
-              if(err2) throw err2;
-              else if (itemInst==null) {socket.emit('err', 'uhohhh'); }
-              else {
-		 
-                for (var j in itemInst) {
-                  connection.query('SELECT * FROM Item WHERE itemID = '+ itemInst[j].itemID, function (err3, item) {
-                    if(err3) throw err;
-                    else if (item==null) {socket.emit('err', 'err3');}
-                    else {
-		      for (var k=0;k<item.length;k++){
-                      itemInst[j].category = item[k].category;
-                      itemInst[j].brand = item[k].brand;
-		      console.log(JSON.stringify(item[k]));
-		      }
-		      itemInstArr.push(JSON.stringify(itemInst[j]));
-                    }
-                     
-                   // socket.emit("receiveCustPurchaseHist", item);
-                    });
-                 
-		  console.log(JSON.stringify(itemInst[j]));
-                
-		   
-		  }  
-              }
-            });  
-          }
-          purchaseInstArr.push(JSON.stringify(itemInstArr));
-	 //console.log(itemInstArr);
-        }  
-      }
-      //socket.emit("receiveCustPurchaseHist", rows);
-    });
-    socket.emit("receiveCustPurchaseHist", purchaseInstArr);
-    console.log("HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    console.log(JSON.stringify(purchaseInstArr));
-
-  }  
-}*/
 
 function inArray(needle, haystack) {
     var length = haystack.length;
