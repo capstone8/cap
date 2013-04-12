@@ -25,17 +25,21 @@
   connect("shopping_cart");
 </script>
         <div data-role="header" data-position="fixed">
-                <h1 id="pp">Past Purchases - N/A</h1>
+                <h1 id="pp">Shopping Cart - N/A</h1>
+                <a class="ui-btn-right" href="#" onClick="loadPage('shopping_cart')" data-role="button" data-mini="true" data-inline="true" data-theme="b"><img src="/assets/80-shopping-cart.png" alt="Add to cart" class="ui-li-icon">    Checkout</a>
         </div><!-- /header -->
 
         <div id="content" data-role="content">
-        <ul id="shopping_cart_list" data-role="listview" data-theme="d" data-divider-theme="d">
-                        <li data-role="list-divider">Friday, October 8, 2012 <span class="ui-li-count">2</span></li>
-                        <li><a href="index.html">
-                                
-                        </a></li>
-                        
-                </ul>
+	  <form>
+	    <fieldset id="shopping_cart_list" data-role="controlgroup">
+		<input type="checkbox" name="checkbox-v-2a" id="checkbox-v-2a">
+		<label for="checkbox-v-2a">One</label>
+		<input type="checkbox" name="checkbox-v-2b" id="checkbox-v-2b">
+		<label for="checkbox-v-2b">Two</label>
+		<input type="checkbox" name="checkbox-v-2c" id="checkbox-v-2c">
+		<label for="checkbox-v-2c">Three</label>
+	    </fieldset>
+	  </form>
 
         </div><!-- /content -->
                 <!--Footer-->
@@ -43,7 +47,7 @@
                         <div data-role="navbar">
                                 <ul>
                                         <li><a href="index.html" data-icon="home" data-iconpos="bottom" data-transition="pop">Home</a></li>
-                                        <li><a onClick="loadPage('itemSearch')" href="#" data-icon="search" data-iconpos="bottom" data-transition="slideup">Search</a></li>
+                                        <li><a onClick="loadPage('item_search')" href="#" data-icon="search" data-iconpos="bottom" data-transition="slideup">Item Search</a></li>
                                 </ul>
                         </div><!-- /navbar -->
                 </div><!-- /footer -->

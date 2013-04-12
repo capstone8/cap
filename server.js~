@@ -96,6 +96,15 @@ server = http.createServer(function(req, res) {
         res.end();
       });
       break;
+      //shopping cart icon
+     case '/assets/80-shopping-cart.png':
+      fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+      break;
     default: send404(res);
   }
 }),
@@ -131,6 +140,8 @@ io.sockets.on('connection', function(socket){
     //kill mysql connection upon socket disconnect
     connection.end();
   });
+  socket.on('getCustExistingCart',function(custID){getCustExistingCart(socket,custID)});
+  socket.on('getCartItemFromDB',function(itemID,attID,custID){getCartItemFromDB(socket,itemID,attID,custID)});
   socket.on('getItemAttributes', function(ID){getItemAttributes(socket, ID);});
   socket.on('getItemListFromDB', function(){getItemListFromDB(socket);});
   socket.on('getCustPurchaseHist', function(ID){getCustPurchaseHist(socket,ID)});
@@ -162,6 +173,33 @@ var custViewing = new Array();
 // var itemInstArr = new Array();
 var purchaseInstArr = new Array();
 
+var shopping_cart = new Array();
+
+function getCustExistingCart(socket,custID){
+  for (var i in shopping_cart){
+    if (shopping_cart[i].custID = custID){
+      socket.emit('receiveCustExistingCart',shopping_cart);
+    }
+  }
+    
+    
+  
+}
+
+function getCartItemFromDB (socket,itemID,attID,custID){
+  connection.query('SELECT * FROM Item INNER JOIN Item_Attribute ON Item.itemID=Item_Attribute.itemID WHERE Item.itemID='+itemID+' and Item_Attribute.itemAttID=' + attID, function(err, rows) {
+    if(err) throw err;
+    else if (rows==null) {socket.emit('err', 'ERR: Joined Item and Item_Attribute query was null'); }
+    else {
+      //check if already in the cart
+     // custArr[ID] = {cust: cust[0], time: time, helped: false};
+      rows.custID = custID;
+      shopping_cart.push(rows);
+      socket.emit("addToCart",rows);
+    }//end else
+  });//end query 
+}
+
 function getItemListFromDB(socket) {
   connection.query('SELECT * FROM Item', function(err, rows) {
     if(err) throw err;
@@ -178,7 +216,7 @@ function getItemAttributes(socket, ID) {
     if(err) throw err;
     else if (rows==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
     else {
-      socket.emit("retrieveItemAttributes",rows);
+      socket.emit("retrieveItemAttributes", ID, rows);
     }//end else
   });//end query 
 }  

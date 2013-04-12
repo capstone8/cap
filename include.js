@@ -51,6 +51,7 @@
             socket.emit('getCustomerID');
             break;
           case "shopping_cart":
+	    socket.on('addToCart',function(item){addItemToCart(item);});
             socket.on('receiveCustExistingCart', function(cart) {
               $("#shopping_cart_list").html("");
               displayItemsInCart(cart);
@@ -81,7 +82,7 @@
                 _.uniq(attributelist);
                 attributelist.sort();
                 for (var att in attributelist) {
-                  addAttributeToItem(ID, attributelist[att].itemAttID, attributelist[att]);
+                  addAttributeToItem(ID, attributelist[att].itemAttID, attributelist[att],attributelist[att].itemID);
                 }
               }
               
@@ -115,10 +116,30 @@
         socket.socket.reconnect();
       }
     }
+    function addItemToCart(item,custID){
+      console.log("addItemToCart: " + item[0].itemID + "  " + item[0].brand );
+      $("#shopping_cart_list").append('<input type="checkbox" name="item'+item[0].itemID+'_'+item[0].itemAttID+'" id=item'+item[0].itemID+'_'+item[0].itemAttID+'">').controlgroup();
+	  $("#shopping_cart_list").append('<label for="item'+item[0].itemID+'_'+item[0].itemAttID+'">'+item[0].category+' - ' +item[0].brand +':   '+item[0].clotheSize+' ,  '+item[0].color + '     '+item[0].price+'</label>').controlgroup();
+	  $("#shopping_cart_list").controlgroup("refresh");
+    }
+    function displayItemsInCart(cart){
+      
+      for (var i in cart){
+	  //alert("displayItemsInCart: " +cart[i].itemID + " " + cart[i].brand);
+	  $("#shopping_cart_list").append('<input type="checkbox" name="item'+cart[i].itemID+'_'+cart[i].itemAttID+'" id=item'+cart[i].itemID+'_'+cart[i].itemAttID+'">').controlgroup();
+	  $("#shopping_cart_list").append('<label for="item'+cart[i].itemID+'_'+cart[i].itemAttID+'">'+cart[i].category+' - ' +cart[i].brand +':   '+cart[i].clotheSize+' ,  '+cart[i].color + '     '+cart[i].price+'</label>').controlgroup();
+	  $("#shopping_cart_list").controlgroup("refresh");
+      }//end for
+    }
+    function addToCart(itemID,attID){
+      socket.emit("getCartItemFromDB",itemID,attID,custID);
+      
+    }
     
-    function addAttributeToItem(ID, attID, attribute) {
+    function addAttributeToItem(ID, attID, attribute,itemID) {
       var $ul = $('ul#item'+ID);
-      $ul.append('<li>'+attribute.color+' - '+attribute.clotheSize+'</li>').listview();
+      
+      $ul.append('<li><a href="#" onClick="addToCart('+ itemID+','+ attID +')"><img src="/assets/80-shopping-cart.png" alt="Add to cart" class="ui-li-icon">' +attribute.color+' - '+attribute.clotheSize+'</a></li>').listview();
       if ($ul.hasClass('ui-listview')) {
           $ul.listview('refresh');
       } else {
