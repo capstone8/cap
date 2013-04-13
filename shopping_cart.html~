@@ -30,16 +30,9 @@
         </div><!-- /header -->
 
         <div id="content" data-role="content">
-	  <form>
-	    <fieldset id="shopping_cart_list" data-role="controlgroup">
-		<input type="checkbox" name="checkbox-v-2a" id="checkbox-v-2a">
-		<label for="checkbox-v-2a">One</label>
-		<input type="checkbox" name="checkbox-v-2b" id="checkbox-v-2b">
-		<label for="checkbox-v-2b">Two</label>
-		<input type="checkbox" name="checkbox-v-2c" id="checkbox-v-2c">
-		<label for="checkbox-v-2c">Three</label>
-	    </fieldset>
-	  </form>
+	    <ul id="shopping_cart_list" data-role="listview" data-split-icon="delete" data-inset="false" data-filter="false" >
+			
+	    </ul>
 
         </div><!-- /content -->
                 <!--Footer-->

@@ -54,7 +54,7 @@
 	    socket.on('addToCart',function(item){addItemToCart(item);});
             socket.on('receiveCustExistingCart', function(cart) {
               $("#shopping_cart_list").html("");
-              displayItemsInCart(cart);
+              displayItemsInCart(cart,custID);
             });
             socket.on('retrieveCustID', function(ID) { 
               custID = ID;
@@ -116,19 +116,30 @@
         socket.socket.reconnect();
       }
     }
+    //###### NEEDS WORK #####
+    function removeItemFromCart(item,custID){
+      //implement remove item from cart
+     // alert(item.itemID + " " + item.itemAttID);
+    /*   var node = document.getElementById(\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ \"");
+      if(node.parentNode) {
+        node.parentNode.removeChild(node);
+      }*/    
+     // socket.emit('removeItemFromCart',item,custID);
+    }
+   
     function addItemToCart(item,custID){
       console.log("addItemToCart: " + item[0].itemID + "  " + item[0].brand );
-      $("#shopping_cart_list").append('<input type="checkbox" name="item'+item[0].itemID+'_'+item[0].itemAttID+'" id=item'+item[0].itemID+'_'+item[0].itemAttID+'">').controlgroup();
-	  $("#shopping_cart_list").append('<label for="item'+item[0].itemID+'_'+item[0].itemAttID+'">'+item[0].category+' - ' +item[0].brand +':   '+item[0].clotheSize+' ,  '+item[0].color + '     '+item[0].price+'</label>').controlgroup();
-	  $("#shopping_cart_list").controlgroup("refresh");
+
+      $("#shopping_cart_list").append("<li id=\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ "\"><a href=\"#\">" + item[0].category + " - " + item[0].brand + ":  "+ item[0].clotheSize + " ,  " + item[0].color + "    $" + item[0].price +"</a><a onclick=\"removeItemFromCart(" + item[0]+ ","+ custID + ")\" href=\"#\"></a></li>").listview('refresh');
+
     }
-    function displayItemsInCart(cart){
+    function displayItemsInCart(cart,custID){
       
       for (var i in cart){
-	  //alert("displayItemsInCart: " +cart[i].itemID + " " + cart[i].brand);
-	  $("#shopping_cart_list").append('<input type="checkbox" name="item'+cart[i].itemID+'_'+cart[i].itemAttID+'" id=item'+cart[i].itemID+'_'+cart[i].itemAttID+'">').controlgroup();
-	  $("#shopping_cart_list").append('<label for="item'+cart[i].itemID+'_'+cart[i].itemAttID+'">'+cart[i].category+' - ' +cart[i].brand +':   '+cart[i].clotheSize+' ,  '+cart[i].color + '     '+cart[i].price+'</label>').controlgroup();
-	  $("#shopping_cart_list").controlgroup("refresh");
+	for (var j in cart[i]){
+	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><a onclick=\"removeItemFromCart(" + cart[i][j] + "," + custID + ")\" href=\"#\"></a></li>").listview('refresh');
+
+	}
       }//end for
     }
     function addToCart(itemID,attID){

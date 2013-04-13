@@ -141,7 +141,11 @@ io.sockets.on('connection', function(socket){
     connection.end();
   });
   socket.on('getCustExistingCart',function(custID){getCustExistingCart(socket,custID)});
-  socket.on('getCartItemFromDB',function(itemID,attID,custID){getCartItemFromDB(socket,itemID,attID,custID)});
+  socket.on('getCartItemFromDB',function(itemID,attID,custID){
+    if (typeof shopping_cart[custID] === 'undefined'){
+	shopping_cart[custID] = new Array();
+    }
+    getCartItemFromDB(socket,itemID,attID,custID)});
   socket.on('getItemAttributes', function(ID){getItemAttributes(socket, ID);});
   socket.on('getItemListFromDB', function(){getItemListFromDB(socket);});
   socket.on('getCustPurchaseHist', function(ID){getCustPurchaseHist(socket,ID)});
@@ -176,14 +180,9 @@ var purchaseInstArr = new Array();
 var shopping_cart = new Array();
 
 function getCustExistingCart(socket,custID){
-  for (var i in shopping_cart){
-    if (shopping_cart[i].custID = custID){
-      socket.emit('receiveCustExistingCart',shopping_cart[i]);
-    }
-  }
-    
-    
-  
+   
+      socket.emit('receiveCustExistingCart',shopping_cart[custID]);
+      
 }
 
 function getCartItemFromDB (socket,itemID,attID,custID){
@@ -192,9 +191,8 @@ function getCartItemFromDB (socket,itemID,attID,custID){
     else if (rows==null) {socket.emit('err', 'ERR: Joined Item and Item_Attribute query was null'); }
     else {
       //check if already in the cart
-     // custArr[ID] = {cust: cust[0], time: time, helped: false};
-      rows.custID = custID;
-      shopping_cart.push(rows);
+      
+      shopping_cart[custID].push(rows);
       socket.emit("addToCart",rows);
     }//end else
   });//end query 
