@@ -126,21 +126,37 @@
       }*/    
      // socket.emit('removeItemFromCart',item,custID);
     }
-   
+    var plus = "plus";
+    var minus = "minus";
     function addItemToCart(item,custID){
       console.log("addItemToCart: " + item[0].itemID + "  " + item[0].brand );
 
-      $("#shopping_cart_list").append("<li id=\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ "\"><a href=\"#\">" + item[0].category + " - " + item[0].brand + ":  "+ item[0].clotheSize + " ,  " + item[0].color + "    $" + item[0].price +"</a><a onclick=\"removeItemFromCart(" + item[0]+ ","+ custID + ")\" href=\"#\"></a></li>").listview('refresh');
+      $("#shopping_cart_list").append("<li id=\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ "\"><a href=\"#\">" + item[0].category + " - " + item[0].brand + ":  "+ item[0].clotheSize + " ,  " + item[0].color + "    $" + item[0].price +"</a><button onClick=\"changeQuantityVal("+item[0].itemID+","+item[0].itemAttID+","+plus+")\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_num\" value=\"1\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+item[0].itemID+","+item[0].itemAttID+","+minus+")\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_minus\" data-inline=\"true\">-</button><a onclick=\"removeItemFromCart(" + item[0]+ ","+ custID + ")\" href=\"#\"></a></li>").listview('refresh');
 
     }
+   
     function displayItemsInCart(cart,custID){
       
       for (var i in cart){
 	for (var j in cart[i]){
-	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><a onclick=\"removeItemFromCart(" + cart[i][j] + "," + custID + ")\" href=\"#\"></a></li>").listview('refresh');
+	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" value=\"1\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">-</button><a onclick=\"removeItemFromCart(" + cart[i][j] + "," + custID + ")\" href=\"#\"></a></li>").listview('refresh');
 
 	}
       }//end for
+    }
+    
+    function changeQuantityVal(itemID,itemAttID,action){
+      var value = $('#item'+itemID+'itemAttID'+itemAttID+'_num').val();
+      switch (action) {
+          case "plus":
+	    value++;
+	    $('#item'+itemID+'itemAttID'+itemAttID+'_num').val(value);
+	    break;
+	  case "minus":
+	    value--;
+	    $('#item'+itemID+'itemAttID'+itemAttID+'_num').val(value);
+	    break;
+      }
     }
     function addToCart(itemID,attID){
       socket.emit("getCartItemFromDB",itemID,attID,custID);
