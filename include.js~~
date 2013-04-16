@@ -130,6 +130,13 @@
     var minus = "minus";
     function addItemToCart(item,custID){
       console.log("addItemToCart: " + item[0].itemID + "  " + item[0].brand );
+<<<<<<< Updated upstream
+
+      $("#shopping_cart_list").append("<li id=\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ "\"><a href=\"#\">" + item[0].category + " - " + item[0].brand + ":  "+ item[0].clotheSize + " ,  " + item[0].color + "    $" + item[0].price +"</a><button onClick=\"changeQuantityVal("+item[0].itemID+","+item[0].itemAttID+","+plus+")\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_num\" value=\"1\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+item[0].itemID+","+item[0].itemAttID+","+minus+")\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_minus\" data-inline=\"true\">-</button><a onclick=\"removeItemFromCart(" + item[0]+ ","+ custID + ")\" href=\"#\"></a></li>").listview('refresh');
+
+    }
+   
+=======
       $("#shopping_cart_list").append("<li id=\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ "\"><a href=\"#\">" + item[0].category + " - " + item[0].brand + ":  "+ item[0].clotheSize + " ,  " + item[0].color + "    $" + item[0].price +"</a><a onclick=\"removeItemFromCart(" + item[0]+ ","+ custID + ")\" href=\"#\"></a></li>").listview('refresh');
       changeItemAdded(item,custID);
     }
@@ -144,6 +151,7 @@
         $('ul#item'+item[0].itemID).listview("refresh");
     }  
     
+>>>>>>> Stashed changes
     function displayItemsInCart(cart,custID){
       
       for (var i in cart){

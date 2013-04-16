@@ -131,10 +131,21 @@
     function addItemToCart(item,custID){
       console.log("addItemToCart: " + item[0].itemID + "  " + item[0].brand );
 
-      $("#shopping_cart_list").append("<li id=\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ "\"><a href=\"#\">" + item[0].category + " - " + item[0].brand + ":  "+ item[0].clotheSize + " ,  " + item[0].color + "    $" + item[0].price +"</a><button onClick=\"changeQuantityVal("+item[0].itemID+","+item[0].itemAttID+","+plus+")\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_num\" value=\"1\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+item[0].itemID+","+item[0].itemAttID+","+minus+")\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_minus\" data-inline=\"true\">-</button><a onclick=\"removeItemFromCart(" + item[0]+ ","+ custID + ")\" href=\"#\"></a></li>").listview('refresh');
-
+      $("#shopping_cart_list").append("<li id=\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ "\"><a href=\"#\">" + item[0].category + " - " + item[0].brand + ":  "+ item[0].clotheSize + " ,  " + item[0].color + "    $" + item[0].price +"</a><a onclick=\"removeItemFromCart(" + item[0]+ ","+ custID + ")\" href=\"#\"></a></li>").listview('refresh');
+      changeItemAdded(item,custID);
     }
-   
+    
+    function changeItemAdded(item, custID) {
+        var $attribute = $('ul#item'+item[0].itemID+' li#att'+item[0].itemAttID);
+        $attribute.attr("data-theme", "b").trigger("create");
+        $attribute.removeClass("ui-btn-hover-c");
+        $attribute.removeClass("ui-btn-up-c");
+        $attribute.addClass("ui-btn-hover-b");
+        $attribute.addClass("ui-btn-up-b");
+        $('ul#item'+item[0].itemID).listview("refresh");
+    }  
+    
+
     function displayItemsInCart(cart,custID){
       
       for (var i in cart){
@@ -166,7 +177,7 @@
     function addAttributeToItem(ID, attID, attribute,itemID) {
       var $ul = $('ul#item'+ID);
       
-      $ul.append('<li><a href="#" onClick="addToCart('+ itemID+','+ attID +')"><img src="/assets/80-shopping-cart.png" alt="Add to cart" class="ui-li-icon">' +attribute.color+' - '+attribute.clotheSize+'</a></li>').listview();
+      $ul.append('<li id=\'att'+attID+'\'><a href="#" onClick="addToCart('+ itemID+','+ attID +')"><img src="/assets/80-shopping-cart.png" alt="Add to cart" class="ui-li-icon">' +attribute.color+' - '+attribute.clotheSize+'</a></li>').listview();
       if ($ul.hasClass('ui-listview')) {
           $ul.listview('refresh');
       } else {
