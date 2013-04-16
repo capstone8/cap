@@ -116,15 +116,17 @@
         socket.socket.reconnect();
       }
     }
-    //###### NEEDS WORK #####
-    function removeItemFromCart(item,custID){
+    
+    //NEEDS WORK
+    function removeItemFromCart(itemID,itemAttID,custID){
       //implement remove item from cart
-     // alert(item.itemID + " " + item.itemAttID);
-    /*   var node = document.getElementById(\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ \"");
+      console.log("wank");
+      /*alert(item.itemID + " " + item.itemAttID);
+      var node = document.getElementById('li#item' + item.itemID +'_itemAtt'+item.itemAttID);
       if(node.parentNode) {
         node.parentNode.removeChild(node);
       }*/    
-     // socket.emit('removeItemFromCart',item,custID);
+      //socket.emit('removeItemFromCart',item,custID);
     }
     var plus = "plus";
     var minus = "minus";
@@ -150,7 +152,7 @@
       
       for (var i in cart){
 	for (var j in cart[i]){
-	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" value=\"1\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">-</button><a onclick=\"removeItemFromCart(" + cart[i][j] + "," + custID + ")\" href=\"#\"></a></li>").listview('refresh');
+	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" value=\"1\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">-</button><a onClick=\"removeItemFromCart("+cart[i][j].itemID + ", " + cart[i][j].itemAttID + ", " + custID + ")\" href=\"#\"></a></li>").listview('refresh');
 
 	}
       }//end for
