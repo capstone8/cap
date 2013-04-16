@@ -140,6 +140,9 @@ io.sockets.on('connection', function(socket){
     //kill mysql connection upon socket disconnect
     connection.end();
   });
+  
+  socket.on('removeItemFromCart', function(itemID, itemAttID, custID){removeItemFromCart(itemID,itemAttID, custID);});
+  
   socket.on('getCustExistingCart',function(custID){getCustExistingCart(socket,custID)});
   socket.on('getCartItemFromDB',function(itemID,attID,custID){
     if (typeof shopping_cart[custID] === 'undefined'){
@@ -178,6 +181,20 @@ var custViewing = new Array();
 var purchaseInstArr = new Array();
 
 var shopping_cart = new Array();
+
+
+function removeItemFromCart(itemID,itemAttID, custID) {
+  if(itemID!==null && itemAttID!==null && custID !==null && typeof(shopping_cart[custID])!=='undefined') {
+    var custCart = shopping_cart[custID];
+    for(var i=0;i<custCart.length;i++) {
+      if(custCart[i][0].itemID == itemID && custCart[i][0].itemAttID == itemAttID) {
+        console.log("customer# " + custID + " cart itemid " + itemID + " and attid " + itemAttID + " will be deleted.");
+        delete custCart[i];
+        break;
+      }  
+    }
+  }
+}  
 
 function getCustExistingCart(socket,custID){
    

@@ -120,13 +120,13 @@
     //NEEDS WORK
     function removeItemFromCart(itemID,itemAttID,custID){
       //implement remove item from cart
-      console.log("wank");
-      /*alert(item.itemID + " " + item.itemAttID);
-      var node = document.getElementById('li#item' + item.itemID +'_itemAtt'+item.itemAttID);
+      console.log(itemID + ", " + itemAttID + ", " + custID);
+      //alert(item.itemID + " " + item.itemAttID);
+      var node = document.getElementById('item' + itemID +'_itemAtt'+itemAttID);
       if(node.parentNode) {
         node.parentNode.removeChild(node);
-      }*/    
-      //socket.emit('removeItemFromCart',item,custID);
+      }
+      socket.emit('removeItemFromCart',itemID,itemAttID,custID);
     }
     var plus = "plus";
     var minus = "minus";
