@@ -88,10 +88,18 @@ server = http.createServer(function(req, res) {
         res.end();
       });
       break;  
-    case '/include.js':
+    case '/checkout.html':
       fs.readFile(__dirname + path, function(err, data){
         if (err) return send404(res);
         res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+      break;  
+    case '/include.js':
+      fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/javascript'})
         res.write(data, 'utf8');
         res.end();
       });
@@ -100,7 +108,7 @@ server = http.createServer(function(req, res) {
      case '/assets/80-shopping-cart.png':
       fs.readFile(__dirname + path, function(err, data){
         if (err) return send404(res);
-        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'image/png'})
         res.write(data, 'utf8');
         res.end();
       });
@@ -145,10 +153,11 @@ io.sockets.on('connection', function(socket){
   
   socket.on('getCustExistingCart',function(custID){getCustExistingCart(socket,custID)});
   socket.on('getCartItemFromDB',function(itemID,attID,custID){
-    if (typeof shopping_cart[custID] === 'undefined'){
+    if (typeof shopping_cart[custID] == 'undefined'){
 	shopping_cart[custID] = new Array();
     }
     getCartItemFromDB(socket,itemID,attID,custID)});
+  socket.on('getCheckoutCart',function(checkout_cart){socket.emit('addCheckoutCart',checkout_cart);});
   socket.on('getItemAttributes', function(ID){getItemAttributes(socket, ID);});
   socket.on('getItemListFromDB', function(){getItemListFromDB(socket);});
   socket.on('getCustPurchaseHist', function(ID){getCustPurchaseHist(socket,ID)});
@@ -182,16 +191,29 @@ var purchaseInstArr = new Array();
 
 var shopping_cart = new Array();
 
+function changeItemQuantityInCart(itemID,itemAttID,custID,value){
+
+  for (var i=0;i<shopping_cart[custID].length;i++){
+    if (typeof shopping_cart[custID][i] !== 'undefined'){
+      if (shopping_cart[custID][i].itemID == itemID && shopping_cart[custID][i].itemAttID == itemAttID){
+	shopping_cart[custID][i].quantity = value;
+	console.log("Quantity: " +shopping_cart[custID][i].quantity );
+      }
+    }
+  }
+}
 
 function removeItemFromCart(itemID,itemAttID, custID) {
   if(itemID!==null && itemAttID!==null && custID !==null && typeof(shopping_cart[custID])!=='undefined') {
     var custCart = shopping_cart[custID];
     for(var i=0;i<custCart.length;i++) {
-      if(custCart[i][0].itemID == itemID && custCart[i][0].itemAttID == itemAttID) {
-        console.log("customer# " + custID + " cart itemid " + itemID + " and attid " + itemAttID + " will be deleted.");
-        delete custCart[i];
-        break;
-      }  
+	if (typeof custCart[i] !== 'undefined'){
+	  if(custCart[i][0].itemID == itemID && custCart[i][0].itemAttID == itemAttID) {
+	    console.log("customer# " + custID + " cart itemid " + itemID + " and attid " + itemAttID + " will be deleted.");
+	    delete custCart[i];
+	    break;
+	  }  
+	}
     }
   }
 }  

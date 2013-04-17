@@ -25,16 +25,8 @@
         </div><!-- /header -->
 
         <div data-role="content">       
-                <div id="item_searchlist" data-role="collapsible-set" data-inset="false" data-filter="true">
-                  <!--<div data-role="collapsible">
-                      <h3>Animals</h3>
-                      <ul data-role="listview" data-inset="false">
-                          <li>Cats</li>
-                          <li>Dogs</li>
-                          <li>Lizards</li>
-                          <li>Snakes</li>
-                      </ul>
-                  </div>-->
+                <div id="item_searchlist" data-role="collapsible-set"  data-inset="false">
+                  
                 </div>
                 
                 <!--<ul id="item_searchlist" data-role="listview" data-inset="false" data-filter="true" >

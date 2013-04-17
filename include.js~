@@ -4,6 +4,7 @@
     var custID;
     var custInfo;
     var customerList = new Array();
+    var checkout_cart = new Array();
     function connect(page) {
       if(firstconnect) {
         socket = io.connect(null);
@@ -109,6 +110,21 @@
             });
             socket.emit('getCustomerID');
             break;
+	  case "checkout":  
+	    socket.on('retrieveCustData', function (ID, cust, time) {
+	      custInfo = cust;
+	    });
+	    socket.on('addCheckoutCart', function(cart) {
+              $("#checkout_list").html("");
+              displayItemsForCheckout(cart,custID);
+            });
+	    socket.on('retrieveCustID', function(ID) { 
+	      custID = ID;
+	      socket.emit("getCustData",custID);
+	    });
+	    socket.emit('getCustExistingCart', custID);
+	    socket.emit('getCustomerID');
+	  break;
         }
 	firstconnect = false;
       }
@@ -116,7 +132,15 @@
         socket.socket.reconnect();
       }
     }
-    
+    function displayItemsForCheckout(cart,custID){
+      for (var i in cart){
+	//for (var j in cart[i]){
+		console.log(cart[i].quantity);
+	        $("#checkout_list").append("<li id=\""+'item' + cart[i].itemID +'_itemAtt'+cart[i].itemAttID+ "\">" + cart[i].category + " - " + cart[i].brand + ":  "+ cart[i].clotheSize + " ,  " + cart[i].color + "    $" + cart[i].price +"  Quantity: "+ cart[i].quantity+ "</li>").listview('refresh');
+		//changeItemAdded(cart[i],custID);
+	//}
+      }//end for
+    }
     //NEEDS WORK
     function removeItemFromCart(itemID,itemAttID,custID){
       //implement remove item from cart
@@ -126,15 +150,17 @@
       if(node.parentNode) {
         node.parentNode.removeChild(node);
       }
-      socket.emit('removeItemFromCart',item,custID);
+      socket.emit('removeItemFromCart',itemID,itemAttID,custID);
     }
     var plus = "plus";
     var minus = "minus";
     function addItemToCart(item,custID){
       console.log("addItemToCart: " + item[0].itemID + "  " + item[0].brand );
-
+      //var itm = {itemID:item[0].itemID, itemAttID:item[0].itemAttID, custID: custID, category:item[0].category, brand:item[0].brand, clotheSize:item[0].clotheSize,color:item[0].color,price:item[0].price, quantity:1};
+	//	checkout_cart.push(itm);
       $("#shopping_cart_list").append("<li id=\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ "\"><a href=\"#\">" + item[0].category + " - " + item[0].brand + ":  "+ item[0].clotheSize + " ,  " + item[0].color + "    $" + item[0].price +"</a><a onclick=\"removeItemFromCart("+item[0].itemID + ", " + item[0].itemAttID + ", " + custID + ")\" href=\"#\"></a></li>").listview('refresh');
       changeItemAdded(item,custID);
+      //socket.emit('getCheckoutCart',checkout_cart);
     }
     
     function changeItemAdded(item, custID) {
@@ -147,15 +173,17 @@
         $('ul#item'+item[0].itemID).listview("refresh");
     }  
     
-
     function displayItemsInCart(cart,custID){
-      
+      //checkout_cart=[];
       for (var i in cart){
 	for (var j in cart[i]){
+		var itm = {itemID:cart[i][j].itemID, itemAttID:cart[i][j].itemAttID, custID: custID, category:cart[i][j].category, brand:cart[i][j].brand, clotheSize:cart[i][j].clotheSize,color:cart[i][j].color,price:cart[i][j].price, quantity:1};
+		checkout_cart.push(itm);
 	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" value=\"1\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">-</button><a onClick=\"removeItemFromCart("+cart[i][j].itemID + ", " + cart[i][j].itemAttID + ", " + custID + ")\" href=\"#\"></a></li>").listview('refresh');
-
 	}
       }//end for
+    socket.emit('getCheckoutCart',checkout_cart);
+      
     }
     
     function changeQuantityVal(itemID,itemAttID,action){
@@ -163,10 +191,12 @@
       switch (action) {
           case "plus":
 	    value++;
-	    $('#item'+itemID+'itemAttID'+itemAttID+'_num').val(value);
+	    $("#refresh_btn").removeClass('ui-disabled');
+	    $('#item'+itemID+'itemAttID'+itemAttID+'_num').val(value);   
 	    break;
 	  case "minus":
 	    value--;
+	    $("#refresh_btn").removeClass('ui-disabled');
 	    $('#item'+itemID+'itemAttID'+itemAttID+'_num').val(value);
 	    break;
       }
@@ -175,7 +205,14 @@
       socket.emit("getCartItemFromDB",itemID,attID,custID);
       
     }
-    
+    function refreshQuantity(){
+      for (var i in checkout_cart) {
+	var val = $('#item'+checkout_cart[i].itemID+'itemAttID'+checkout_cart[i].itemAttID+'_num').val();
+	checkout_cart[i].quantity = val;
+      }
+      socket.emit('getCheckoutCart',checkout_cart);
+      
+    }
     function addAttributeToItem(ID, attID, attribute,itemID) {
       var $ul = $('ul#item'+ID);
       
@@ -188,7 +225,7 @@
     }  
     
     function addItemToSearchFeed(ID, item) {
-      $('#item_searchlist').append("<div data-role=\"collapsible\" data-inset\"false\"><h3 onClick=\"loadItemAttributes("+ID+")\">" + item.category + " - " + item.brand + "</h3><ul id=\"item"+ID+"\" data-role=\"listview\" data-inset=\"false\"></ul></div>").collapsibleset("refresh");
+      $('#item_searchlist').append("<div data-role=\"collapsible\" data-inset\"false\"><h3 onClick=\"loadItemAttributes("+ID+")\">" + item.category + " - " + item.brand + "</h3><ul id=\"item"+ID+"\" data-role=\"listview\" data-inset=\"false\" data-filter=\"true\" data-filter-reveal=\"true\" data-filter-placeholder=\"Search Item..\"></ul></div>").collapsibleset("refresh");
     }
     
     function loadItemAttributes(itemID) {
@@ -308,6 +345,15 @@
             transition: "slide"
           });
           break;
+	case 'checkout':
+	  socket.emit("setCustomerID", custID);
+	  $.mobile.changePage( "/checkout.html", {
+	      role: "page",
+	      type: "get",
+	      data:{ID:custID},
+	      transition: "slide"
+	    });
+	break;
      }
       
     }
