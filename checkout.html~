@@ -29,10 +29,11 @@
         </div><!-- /header -->
 
         <div id="content" data-role="content">
-	    <ul id="checkout_list" data-role="listview"  data-inset="false" data-filter="false" >
+	    
+	    <ol id="checkout_list" data-role="listview"  data-inset="false" data-filter="false" >
 			
-	    </ul>
-
+	    </ol>
+	   
         </div><!-- /content -->
                 <!--Footer-->
                 <div data-role="footer" data-position="fixed">          

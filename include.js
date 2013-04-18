@@ -4,7 +4,6 @@
     var custID;
     var custInfo;
     var customerList = new Array();
-    var checkout_cart = new Array();
     function connect(page) {
       if(firstconnect) {
         socket = io.connect(null);
@@ -24,8 +23,6 @@
             socket.on('removeCustomerFromFeed', function(ID) {removeCustomerFromFeed(ID);});
             socket.on('addCustomerToFeed', function(ID, cust, time) {addCustomerToFeed(ID, cust, time);});
             socket.on('isHelped',function(ID, helped){changeHelped(ID,helped); });
-            //get list of customers from the database for the seaarch page in an array of customers
-            //socket.on('retrieveCustomerListFromDB', function(custlist){displayListOfCustomers(custlist)});
             socket.on('retrieveCustomerListFromFeed', function(list) {
               for (var cust in list) {
                 addCustomerToFeed(list[cust].cust.personalID, list[cust].cust, list[cust].time);
@@ -114,16 +111,26 @@
 	    socket.on('retrieveCustData', function (ID, cust, time) {
 	      custInfo = cust;
 	    });
-	    socket.on('addCheckoutCart', function(cart) {
+	    socket.emit('getCustomerID');
+	    
+	    socket.on('receiveCustExistingCart', function(cart) {
               $("#checkout_list").html("");
-              displayItemsForCheckout(cart,custID);
+	      var totalPrice = 0;
+	      var numItems = 0;
+	      for (var i in cart){
+		  totalPrice+= cart[i][0].quantity * cart[i][0].price;
+		  numItems+= cart[i][0].quantity;
+	      }
+              displayItemsForCheckout(cart,custID,totalPrice,numItems);
+	      socket.emit('setPurchaseInst',custID,totalPrice,numItems);
             });
+	    
 	    socket.on('retrieveCustID', function(ID) { 
 	      custID = ID;
 	      socket.emit("getCustData",custID);
 	    });
 	    socket.emit('getCustExistingCart', custID);
-	    socket.emit('getCustomerID');
+	    
 	  break;
         }
 	firstconnect = false;
@@ -132,18 +139,21 @@
         socket.socket.reconnect();
       }
     }
-    function displayItemsForCheckout(cart,custID){
+    function displayItemsForCheckout(cart,custID,totalPrice,numItems){
+      if (_.isEmpty(cart)== false){
+	$("#checkout_list").append("<h3 style='text-align: center; background-color:#BABABA'>Your order has been processed!</h3>").listview('refresh');}
       for (var i in cart){
-	//for (var j in cart[i]){
-		console.log(cart[i].quantity);
-	        $("#checkout_list").append("<li id=\""+'item' + cart[i].itemID +'_itemAtt'+cart[i].itemAttID+ "\">" + cart[i].category + " - " + cart[i].brand + ":  "+ cart[i].clotheSize + " ,  " + cart[i].color + "    $" + cart[i].price +"  Quantity: "+ cart[i].quantity+ "</li>").listview('refresh');
-		//changeItemAdded(cart[i],custID);
-	//}
+	for (var j in cart[i]){
+		//console.log(cart[i][j].quantity);
+	        $("#checkout_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"  Quantity: "+ cart[i][j].quantity+ "</li>").listview('refresh');
+		//chan1geItemAdded(cart[i],custID);
+	}
       }//end for
+      $("#checkout_list").append("<br/><br/><span id='total'><u>Number of Items:</u><b> "+ numItems +"</b><br/><br/><u>Total Price:</u><b>$"+ totalPrice +"<b></span>").listview('refresh');
     }
-    //NEEDS WORK
-    function removeItemFromCart(itemID,itemAttID,custID){
+    function removeItemFromCart(itemID,itemAttID,custID,price){
       //implement remove item from cart
+      console.log("reduced " + price + " from " + totalPrice + "numprices: " + numItems);
       console.log(itemID + ", " + itemAttID + ", " + custID);
       //alert(item.itemID + " " + item.itemAttID);
       var node = document.getElementById('item' + itemID +'_itemAtt'+itemAttID);
@@ -154,13 +164,11 @@
     }
     var plus = "plus";
     var minus = "minus";
+    
     function addItemToCart(item,custID){
-      console.log("addItemToCart: " + item[0].itemID + "  " + item[0].brand );
-      //var itm = {itemID:item[0].itemID, itemAttID:item[0].itemAttID, custID: custID, category:item[0].category, brand:item[0].brand, clotheSize:item[0].clotheSize,color:item[0].color,price:item[0].price, quantity:1};
-	//	checkout_cart.push(itm);
-      $("#shopping_cart_list").append("<li id=\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ "\"><a href=\"#\">" + item[0].category + " - " + item[0].brand + ":  "+ item[0].clotheSize + " ,  " + item[0].color + "    $" + item[0].price +"</a><a onclick=\"removeItemFromCart("+item[0].itemID + ", " + item[0].itemAttID + ", " + custID + ")\" href=\"#\"></a></li>").listview('refresh');
+     
+     // $("#shopping_cart_list").append("<li id=\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ "\"><a href=\"#\">" + item[0].category + " - " + item[0].brand + ":  "+ item[0].clotheSize + " ,  " + item[0].color + "    $" + item[0].price +"</a><button onClick=\"changeQuantityVal("+item[0].itemID+","+item[0].itemAttID+","+plus+")\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_num\" value=\""+item[0].quantity+"\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+item[0].itemID+","+item[0].itemAttID+","+minus+")\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_minus\" data-inline=\"true\">-</button><a onClick=\"removeItemFromCart("+item[0].itemID + ", " + item[0].itemAttID + ", " + custID + ","+ item[0].price +")\" href=\"#\"></a></li>").listview('refresh');
       changeItemAdded(item,custID);
-      //socket.emit('getCheckoutCart',checkout_cart);
     }
     
     function changeItemAdded(item, custID) {
@@ -170,6 +178,7 @@
         $attribute.removeClass("ui-btn-up-c");
         $attribute.addClass("ui-btn-hover-b");
         $attribute.addClass("ui-btn-up-b");
+	$attribute.addClass("ui-disabled");
         $('ul#item'+item[0].itemID).listview("refresh");
     }  
     
@@ -177,12 +186,10 @@
       //checkout_cart=[];
       for (var i in cart){
 	for (var j in cart[i]){
-		var itm = {itemID:cart[i][j].itemID, itemAttID:cart[i][j].itemAttID, custID: custID, category:cart[i][j].category, brand:cart[i][j].brand, clotheSize:cart[i][j].clotheSize,color:cart[i][j].color,price:cart[i][j].price, quantity:1};
-		checkout_cart.push(itm);
-	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" value=\"1\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">-</button><a onClick=\"removeItemFromCart("+cart[i][j].itemID + ", " + cart[i][j].itemAttID + ", " + custID + ")\" href=\"#\"></a></li>").listview('refresh');
+	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" value=\""+cart[i][j].quantity+"\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">-</button><a onClick=\"removeItemFromCart("+cart[i][j].itemID + ", " + cart[i][j].itemAttID + ", " + custID + "," + cart[i][j].price +")\" href=\"#\"></a></li>").listview('refresh');
 	}
+	//changeItemAdded(cart[i],custID);
       }//end for
-    socket.emit('getCheckoutCart',checkout_cart);
       
     }
     
@@ -191,11 +198,13 @@
       switch (action) {
           case "plus":
 	    value++;
+	    socket.emit('changeItemQuantityInCart',itemID,itemAttID,custID,value);
 	    $("#refresh_btn").removeClass('ui-disabled');
 	    $('#item'+itemID+'itemAttID'+itemAttID+'_num').val(value);   
 	    break;
 	  case "minus":
 	    value--;
+	    socket.emit('changeItemQuantityInCart',itemID,itemAttID,custID,value);
 	    $("#refresh_btn").removeClass('ui-disabled');
 	    $('#item'+itemID+'itemAttID'+itemAttID+'_num').val(value);
 	    break;
@@ -205,14 +214,7 @@
       socket.emit("getCartItemFromDB",itemID,attID,custID);
       
     }
-    function refreshQuantity(){
-      for (var i in checkout_cart) {
-	var val = $('#item'+checkout_cart[i].itemID+'itemAttID'+checkout_cart[i].itemAttID+'_num').val();
-	checkout_cart[i].quantity = val;
-      }
-      socket.emit('getCheckoutCart',checkout_cart);
-      
-    }
+
     function addAttributeToItem(ID, attID, attribute,itemID) {
       var $ul = $('ul#item'+ID);
       

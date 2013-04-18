@@ -157,7 +157,10 @@ io.sockets.on('connection', function(socket){
 	shopping_cart[custID] = new Array();
     }
     getCartItemFromDB(socket,itemID,attID,custID)});
-  socket.on('getCheckoutCart',function(checkout_cart){socket.emit('addCheckoutCart',checkout_cart)});
+  socket.on('setPurchaseInst',function(custID,totalPrice,numItems){setPurchaseInst(socket,custID,totalPrice,numItems);});
+  socket.on('changeItemQuantityInCart',function(itemID,itemAttID,custID,value){
+    changeItemQuantityInCart(itemID,itemAttID,custID,value);
+  })
   socket.on('getItemAttributes', function(ID){getItemAttributes(socket, ID);});
   socket.on('getItemListFromDB', function(){getItemListFromDB(socket);});
   socket.on('getCustPurchaseHist', function(ID){getCustPurchaseHist(socket,ID)});
@@ -191,15 +194,42 @@ var purchaseInstArr = new Array();
 
 var shopping_cart = new Array();
 
-function changeItemQuantityInCart(itemID,itemAttID,custID,value){
-
-  for (var i=0;i<shopping_cart[custID].length;i++){
-    if (typeof shopping_cart[custID][i] !== 'undefined'){
-      if (shopping_cart[custID][i].itemID == itemID && shopping_cart[custID][i].itemAttID == itemAttID){
-	shopping_cart[custID][i].quantity = value;
-	console.log("Quantity: " +shopping_cart[custID][i].quantity );
-      }
+//function to convert javascript new Date into mysql DATE format YYYY-MM-DD
+Date.prototype.toYMD = Date_toYMD;
+function Date_toYMD() {
+    var year, month, day;
+    year = String(this.getFullYear());
+    month = String(this.getMonth() + 1);
+    if (month.length == 1) {
+        month = "0" + month;
     }
+    day = String(this.getDate());
+    if (day.length == 1) {
+        day = "0" + day;
+    }
+    return year + "-" + month + "-" + day;
+}
+var purchaseInstID;
+function setPurchaseInst(socket,custID,totalPrice,numItems){
+ var time = new Date();
+ var dt = time.toYMD();
+ console.log(dt);
+  //console.log("setPurchaseInst: " +cart[i][j].itemID);
+  connection.query('INSERT INTO Purchase_Inst (purchaseDate,totalAmnt,numItems,custID) VALUES (\''+dt+'\','+totalPrice+','+numItems+','+custID+') ON DUPLICATE KEY UPDATE custID='+custID, function(err, result) {
+    if (err) throw err;
+      purchaseInstID = result.insertId;
+      console.log("purchaseInstID: "+result.insertId);
+    });
+    
+  
+}
+
+function changeItemQuantityInCart(itemID,itemAttID,custID,value){
+  for (var i in shopping_cart[custID]){
+      if (shopping_cart[custID][i][0].itemID == itemID && shopping_cart[custID][i][0].itemAttID == itemAttID){
+	shopping_cart[custID][i][0].quantity = value;
+	//console.log("Quantity: " +shopping_cart[custID][i][0].quantity );
+      }
   }
 }
 
@@ -219,20 +249,23 @@ function removeItemFromCart(itemID,itemAttID, custID) {
 }  
 
 function getCustExistingCart(socket,custID){
-   
-      socket.emit('receiveCustExistingCart',shopping_cart[custID]);
-      
+      socket.emit('receiveCustExistingCart',shopping_cart[custID]);      
 }
 
+
+
 function getCartItemFromDB (socket,itemID,attID,custID){
-  connection.query('SELECT * FROM Item INNER JOIN Item_Attribute ON Item.itemID=Item_Attribute.itemID WHERE Item.itemID='+itemID+' and Item_Attribute.itemAttID=' + attID, function(err, rows) {
+//    connection.query('SELECT * FROM Item INNER JOIN Item_Attribute ON Item.itemID=Item_Attribute.itemID WHERE Item.itemID='+itemID+' and Item_Attribute.itemAttID=' + attID, function(err, rows) {
+
+  connection.query('SELECT * FROM Item INNER JOIN Item_Attribute ON Item.itemID='+itemID+' WHERE Item_Attribute.itemAttID=' + attID, function(err, rows) {
     if(err) throw err;
     else if (rows==null) {socket.emit('err', 'ERR: Joined Item and Item_Attribute query was null'); }
     else {
-      //check if already in the cart
-      
-      shopping_cart[custID].push(rows);
-      socket.emit("addToCart",rows);
+     for (var i in rows){
+       rows[i].quantity = 1;
+    }
+    shopping_cart[custID].push(rows);
+    socket.emit("addToCart",rows);
     }//end else
   });//end query 
 }

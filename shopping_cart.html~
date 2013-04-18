@@ -34,7 +34,6 @@
 			
 	    </ul>
 	    <br />
-	    <a id="refresh_btn" onClick="refreshQuantity()" href="#" data-role="button" class="ui-disabled" data-icon="refresh"  data-theme="c" data-inline="true">Refresh</a>
 
         </div><!-- /content -->
                 <!--Footer-->
