@@ -151,16 +151,18 @@ io.sockets.on('connection', function(socket){
   
   socket.on('removeItemFromCart', function(itemID, itemAttID, custID){removeItemFromCart(itemID,itemAttID, custID);});
   
-  socket.on('getCustExistingCart',function(custID){getCustExistingCart(socket,custID)});
+  socket.on('getCustExistingCart',function(custID,page){
+    getCustExistingCart(socket,custID,page)});
   socket.on('getCartItemFromDB',function(itemID,attID,custID){
     if (typeof shopping_cart[custID] == 'undefined'){
 	shopping_cart[custID] = new Array();
     }
     getCartItemFromDB(socket,itemID,attID,custID)});
-  socket.on('setPurchaseInst',function(custID,totalPrice,numItems){setPurchaseInst(socket,custID,totalPrice,numItems);});
+  socket.on('setPurchaseInst',function(custID,totalPrice,numItems,cart){setPurchaseInst(socket,custID,totalPrice,numItems,cart);});
   socket.on('changeItemQuantityInCart',function(itemID,itemAttID,custID,value){
     changeItemQuantityInCart(itemID,itemAttID,custID,value);
-  })
+  });
+  socket.on('resetCustCart',function(custID){resetCustCart(custID);});
   socket.on('getItemAttributes', function(ID){getItemAttributes(socket, ID);});
   socket.on('getItemListFromDB', function(){getItemListFromDB(socket);});
   socket.on('getCustPurchaseHist', function(ID){getCustPurchaseHist(socket,ID)});
@@ -210,18 +212,30 @@ function Date_toYMD() {
     return year + "-" + month + "-" + day;
 }
 var purchaseInstID;
-function setPurchaseInst(socket,custID,totalPrice,numItems){
+function setPurchaseInst(socket,custID,totalPrice,numItems,cart){
  var time = new Date();
  var dt = time.toYMD();
  console.log(dt);
   //console.log("setPurchaseInst: " +cart[i][j].itemID);
-  connection.query('INSERT INTO Purchase_Inst (purchaseDate,totalAmnt,numItems,custID) VALUES (\''+dt+'\','+totalPrice+','+numItems+','+custID+') ON DUPLICATE KEY UPDATE custID='+custID, function(err, result) {
+  connection.query('INSERT INTO Purchase_Inst (purchaseDate,totalAmnt,numItems,custID) VALUES (\''+dt+'\','+totalPrice+','+numItems+','+custID+')', function(err, result) {
     if (err) throw err;
       purchaseInstID = result.insertId;
       console.log("purchaseInstID: "+result.insertId);
+      for (var item in cart) {
+        setItemInst(socket, custID, purchaseInstID, cart[item]);
+      }  
     });
-    
-  
+}
+
+function setItemInst(socket,custID,purchaseInstID, cartItem) {
+  console.log(cartItem[0]);
+  console.log(cartItem);
+  console.log(cartItem.itemID);
+  console.log(cartItem[0].itemID);
+  /*connection.query('INSERT INTO Item_Inst (adjPrice, itemID, purchaseInstID, itemAttID) VALUES ('+cartItem.price+','+cartItem[0].itemID+','+purchaseInstID+','+cartItem[0].itemAttID+')', function(err,result) {
+    if (err) throw err;
+    console.log("itemInstID: "+result.insertId);
+  });*/
 }
 
 function changeItemQuantityInCart(itemID,itemAttID,custID,value){
@@ -235,12 +249,12 @@ function changeItemQuantityInCart(itemID,itemAttID,custID,value){
 
 function removeItemFromCart(itemID,itemAttID, custID) {
   if(itemID!==null && itemAttID!==null && custID !==null && typeof(shopping_cart[custID])!=='undefined') {
-    var custCart = shopping_cart[custID];
-    for(var i=0;i<custCart.length;i++) {
-	if (typeof custCart[i] !== 'undefined'){
-	  if(custCart[i][0].itemID == itemID && custCart[i][0].itemAttID == itemAttID) {
+    
+    for(var i in shopping_cart[custID]) {
+	if (typeof shopping_cart[custID][i] !== 'undefined'){
+	  if(shopping_cart[custID][i][0].itemID == itemID && shopping_cart[custID][i][0].itemAttID == itemAttID) {
 	    console.log("customer# " + custID + " cart itemid " + itemID + " and attid " + itemAttID + " will be deleted.");
-	    delete custCart[i];
+	    delete shopping_cart[custID][i];
 	    break;
 	  }  
 	}
@@ -248,8 +262,12 @@ function removeItemFromCart(itemID,itemAttID, custID) {
   }
 }  
 
-function getCustExistingCart(socket,custID){
-      socket.emit('receiveCustExistingCart',shopping_cart[custID]);      
+function resetCustCart(custID){
+  shopping_cart.splice(custID);
+}
+
+function getCustExistingCart(socket,custID,page){
+      socket.emit('receiveCustExistingCart',shopping_cart[custID], page);      
 }
 
 
@@ -367,7 +385,12 @@ function cusEnterLeave(socket, ID) {
 			} else {
 				socket.emit('err', "wtf");
 			}
-		});
+		});            
+            
+            
+            
+            
+            
 		//console.log("look here fuckface" + rows[0].empID);		
 		
 	} else {

@@ -25,7 +25,7 @@
   connect("purchase_history");
 </script>
 	<div data-role="header" data-position="fixed">
-		<h1 id="pp">Past Purchases</h1>
+		<h1 id="pp">Past Purchases - N/A</h1>
 	</div><!-- /header -->
 
 	<div id="content" data-role="content">

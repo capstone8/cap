@@ -13,10 +13,7 @@
         <script src="http://underscorejs.org/underscore-min.js"></script>
 
 <script type="text/javascript">
- 
- $('div:jqmData(role="page")').live('pagebeforeshow', function() {
-      connect();  
- });
+
 </script>
 
 <div id="shopping_cart" data-role="page" data-theme="c" data-add-back-btn="true">

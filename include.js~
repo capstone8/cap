@@ -7,6 +7,7 @@
     function connect(page) {
       if(firstconnect) {
         socket = io.connect(null);
+        console.log("currently on page: " + page);
         switch (page) {
           case "customer":
             socket.on('retrieveCustData', function (ID, cust, time) {
@@ -49,14 +50,23 @@
             socket.emit('getCustomerID');
             break;
           case "shopping_cart":
-	    socket.on('addToCart',function(item){addItemToCart(item);});
-            socket.on('receiveCustExistingCart', function(cart) {
-              $("#shopping_cart_list").html("");
-              displayItemsInCart(cart,custID);
+            socket.on('addToCart',function(item){addItemToCart(item);});
+            socket.once('receiveCustExistingCart', function(cart, page) {
+              if(page=="shopping_cart"){
+                $("#shopping_cart_list").html("");
+                displayItemsInCart(cart,custID);
+                if(_.isEmpty(cart)){
+                  $("a#checkout_button").addClass("ui-disabled");
+                  $("#shopping_cart_list").append("<li id=\"empty_message\">Shopping cart is empty. Add items</li>").listview('refresh');
+                } else {
+                  $("a#checkout_button").removeClass("ui-disabled");
+                }  
+              }
             });
-            socket.on('retrieveCustID', function(ID) { 
+            socket.once('retrieveCustID', function(ID) {
+              console.log("here it is");
               custID = ID;
-              socket.emit('getCustExistingCart', custID);
+              socket.emit('getCustExistingCart', custID, "shopping_cart");
             });
             socket.emit('getCustomerID');
             break;
@@ -98,38 +108,48 @@
             socket.emit('getItemListFromDB');
             break;
           case "brands":  
-            socket.on('retrieveCustData', function (ID, cust, time) {
+            socket.once('retrieveCustData', function (ID, cust, time) {
               custInfo = cust;
             });
-            socket.on('retrieveCustID', function(ID) { 
+            socket.once('retrieveCustID', function(ID) { 
               custID = ID;
               socket.emit("getCustData",custID);
             });
             socket.emit('getCustomerID');
             break;
 	  case "checkout":  
-	    socket.on('retrieveCustData', function (ID, cust, time) {
+	    socket.once('retrieveCustData', function (ID, cust, time) {
 	      custInfo = cust;
+              socket.emit('getCustExistingCart', custID, "checkout");
 	    });
 	    socket.emit('getCustomerID');
 	    
-	    socket.on('receiveCustExistingCart', function(cart) {
+	    socket.once('receiveCustExistingCart', function(cart, parentPage) {
+              if(parentPage == "checkout"){
               $("#checkout_list").html("");
 	      var totalPrice = 0;
 	      var numItems = 0;
 	      for (var i in cart){
-		  totalPrice+= cart[i][0].quantity * cart[i][0].price;
-		  numItems+= cart[i][0].quantity;
-	      }
+                for (var j in cart[i]){
+		  totalPrice+= cart[i][j].quantity * cart[i][j].price;
+		  numItems+= cart[i][j].quantity;
+                }
+              }
               displayItemsForCheckout(cart,custID,totalPrice,numItems);
-	      socket.emit('setPurchaseInst',custID,totalPrice,numItems);
+              console.log("hey");
+              if (_.isEmpty(cart)==false){
+                socket.emit('setPurchaseInst',custID,totalPrice,numItems);
+                socket.emit('resetCustCart',custID);
+              }
+              }
             });
 	    
-	    socket.on('retrieveCustID', function(ID) { 
+	    socket.once('retrieveCustID', function(ID) { 
 	      custID = ID;
 	      socket.emit("getCustData",custID);
+              
 	    });
-	    socket.emit('getCustExistingCart', custID);
+	    
 	    
 	  break;
         }
@@ -151,9 +171,8 @@
       }//end for
       $("#checkout_list").append("<br/><br/><span id='total'><u>Number of Items:</u><b> "+ numItems +"</b><br/><br/><u>Total Price:</u><b>$"+ totalPrice +"<b></span>").listview('refresh');
     }
-    function removeItemFromCart(itemID,itemAttID,custID,price){
+    function removeItemFromCart(itemID,itemAttID,custID){
       //implement remove item from cart
-      console.log("reduced " + price + " from " + totalPrice + "numprices: " + numItems);
       console.log(itemID + ", " + itemAttID + ", " + custID);
       //alert(item.itemID + " " + item.itemAttID);
       var node = document.getElementById('item' + itemID +'_itemAtt'+itemAttID);
@@ -186,7 +205,7 @@
       //checkout_cart=[];
       for (var i in cart){
 	for (var j in cart[i]){
-	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" value=\""+cart[i][j].quantity+"\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">-</button><a onClick=\"removeItemFromCart("+cart[i][j].itemID + ", " + cart[i][j].itemAttID + ", " + custID + "," + cart[i][j].price +")\" href=\"#\"></a></li>").listview('refresh');
+	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" value=\""+cart[i][j].quantity+"\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">-</button><a onClick=\"removeItemFromCart("+cart[i][j].itemID + ", " + cart[i][j].itemAttID + ", " + custID + ")\" href=\"#\"></a></li>").listview('refresh');
 	}
 	//changeItemAdded(cart[i],custID);
       }//end for
