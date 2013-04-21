@@ -114,7 +114,9 @@
             socket.once('retrieveCustID', function(ID) { 
               custID = ID;
               socket.emit("getCustData",custID);
+	      socket.emit('getBrandListFromDB',custID);
             });
+	    socket.on('retreiveBrandData',function(brands){createBrandPieChart(brands);});
             socket.emit('getCustomerID');
             break;
 	  case "size":  
@@ -126,7 +128,7 @@
 	      custID = ID;
 	      socket.emit("getCustData",custID);
 	    });
-	    socket.on("retrieveSizeFromDB",function(size){addSize(size);});
+	    socket.once("retrieveSizeFromDB",function(size){addSize(size);});
 	    socket.emit("getCustomerSizeFromDB",custID);
 	    socket.emit('getCustomerID');
 	  break;
@@ -171,6 +173,13 @@
       else {
         socket.socket.reconnect();
       }
+    }
+    var brands_grouped = new Array();
+    function createBrandPieChart(brands){
+      for (var i in brands) {
+	brands_grouped.push(i);
+      }
+      
     }
     
     function addSize(size){

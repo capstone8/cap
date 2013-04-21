@@ -7,19 +7,31 @@
 	<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
 	<script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
 	<script src="http://underscorejs.org/underscore-min.js"></script>
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable(brands_grouped);
+	conlose.log(brands_grouped);
+        var options = {
+          title: 'Favorite Brands'
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+      </script>
 </head> 
 <body> 
-<script type="text/javascript">
- 
- $('div:jqmData(role="page")').live('pagebeforeshow', function() {
-      connect();  
- });
- //addCustomerData(custID,custInfo);
-</script>
-<div data-role="page" data-theme="c" data-add-back-btn="true">
 
+<div data-role="page" data-theme="c" data-add-back-btn="true">
+<script src="/include.js"></script>
 <script type="text/javascript">
-  connect("brands");
+
+      connect("brands");
+       
+
 </script>
 	<div data-role="header" data-position="fixed">
 		<h1>Favorite Brands</h1>
@@ -27,8 +39,8 @@
 
 	<div data-role="content">
 	<h1>Steven Glansberg</h1>
-	<h3>Time in store - 27 minutes</h3>
-	<img src="graph.png" width="95%"/>
+	<div id="chart_div" style="width: 900px; height: 500px;"></div>
+	
 
 	</div><!-- /content -->
 		<!--Footer-->

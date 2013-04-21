@@ -9,12 +9,7 @@
 	<script src="http://underscorejs.org/underscore-min.js"></script>
 </head> 
 <body> 
-<script type="text/javascript">
- 
- $('div:jqmData(role="page")').live('pagebeforeshow', function() {
-      connect();  
- });
-</script>
+
 <div data-role="page" data-theme="c" data-add-back-btn="true">
 <script src="/include.js"></script>
 <script>
@@ -29,13 +24,13 @@
 	<h3 class="time">Time in store - N/A</h3>
 	<div class="ui-grid-b">
                     <div class="ui-block-a">
-		      <strong>Shirt Size:</strong>
+		      <strong><u>Shirt Size:</u></strong>
                     </div>
                     <div class="ui-block-b">
-		      <strong>Pant Size:</strong>
+		      <strong><u>Pant Size:</u></strong>
                     </div>
                     <div class="ui-block-c">
-		      <strong>Dress Size:</strong>
+		      <strong><u>Dress Size:</u></strong>
                     </div>
         </div>
 	<div class="ui-grid-b">

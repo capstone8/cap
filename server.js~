@@ -162,6 +162,7 @@ io.sockets.on('connection', function(socket){
   socket.on('changeItemQuantityInCart',function(itemID,itemAttID,custID,value){
     changeItemQuantityInCart(itemID,itemAttID,custID,value);
   });
+  socket.on('getBrandListFromDB',function(custID){getBrandListFromDB(socket,custID); });
   socket.on('getCustomerSizeFromDB',function(custID){getSizeFromDB(socket,custID);});
   socket.on('resetCustCart',function(custID){resetCustCart(custID);});
   socket.on('getItemAttributes', function(ID){getItemAttributes(socket, ID);});
@@ -197,6 +198,26 @@ var purchaseInstArr = new Array();
 
 var shopping_cart = new Array();
 
+function getBrandListFromDB(socket,custID){
+  connection.query('SELECT brand FROM Item INNER JOIN Item_Inst ON Item.itemID = Item_Inst.itemID INNER JOIN Purchase_Inst ON Purchase_Inst.custID = ' + custID,function(err, rows){
+    if (err) throw err;
+    else if (rows == null) {socket.emit('err','ERR: no brands'); }
+    else {
+      var group = {};
+      var max = 0;
+      var value;
+      for (var i = rows.length; --i >= 0;) {
+	value = rows[i].brand;
+	group[value] = (group[value] | 0) + 1;
+    }
+    for (key in group) {
+	if (group[key] > max) max = group[key];
+    }
+      console.log(group);
+    }
+   soket.emit('retreiveBrandData',group);
+  });//end query
+}
 
 function getSizeFromDB(socket,custID) {
   connection.query('SELECT shirtSize,pantSize,dressSize FROM Customer WHERE custID = ' + custID, function(err, rows) {
