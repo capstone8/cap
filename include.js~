@@ -117,7 +117,20 @@
             });
             socket.emit('getCustomerID');
             break;
-	  case "checkout":  
+	  case "size":  
+	    socket.once('retrieveCustData', function (ID, cust, time) {
+	       addCustomerData(ID, cust, time);
+	      custInfo = cust;
+	    });
+	    socket.once('retrieveCustID', function(ID) { 
+	      custID = ID;
+	      socket.emit("getCustData",custID);
+	    });
+	    socket.on("retrieveSizeFromDB",function(size){addSize(size);});
+	    socket.emit("getCustomerSizeFromDB",custID);
+	    socket.emit('getCustomerID');
+	  break;
+	  case "checkout":
 	    socket.once('retrieveCustData', function (ID, cust, time) {
 	      custInfo = cust;
               socket.emit('getCustExistingCart', custID, "checkout");
@@ -138,7 +151,7 @@
               displayItemsForCheckout(cart,custID,totalPrice,numItems);
               console.log("hey");
               if (_.isEmpty(cart)==false){
-                socket.emit('setPurchaseInst',custID,totalPrice,numItems);
+                socket.emit('setPurchaseInst',custID,totalPrice,numItems,cart);
                 socket.emit('resetCustCart',custID);
               }
               }
@@ -159,6 +172,13 @@
         socket.socket.reconnect();
       }
     }
+    
+    function addSize(size){
+	$("#shirt_size").append(size[0].shirtSize);
+	$("#pant_size").append(size[0].pantSize);
+	$("#dress_size").append(size[0].dressSize);
+    }
+    
     function displayItemsForCheckout(cart,custID,totalPrice,numItems){
       if (_.isEmpty(cart)== false){
 	$("#checkout_list").append("<h3 style='text-align: center; background-color:#BABABA'>Your order has been processed!</h3>").listview('refresh');}
@@ -264,7 +284,7 @@
           $("#purchase_history_list").append("<li id=\"purchase"+purchaseInst.purchaseInstID+"\" data-role=\"list-divider\">"+purchaseInst.purchaseDate+"></li>").listview('refresh');
         }  
 
-        $("#purchase_history_list").append("<li id=\"item"+purchaseInst.itemInstID+"\"<a href=\"#\"><h3>"+purchaseInst.category+"</h3><p><strong>"+purchaseInst.brand+"</strong></p><p>"+purchaseInst.clotheSize+"</p></a></li>").listview("refresh");
+        $("#purchase_history_list").append("<li id=\"item"+purchaseInst.itemInstID+"\"<a href=\"#\"><h3>"+purchaseInst.category+"</h3><p><strong>"+purchaseInst.brand+"</strong></p><p>"+purchaseInst.clotheSize+"  " +purchaseInst.adjPrice+"</p></a></li>").listview("refresh");
       }  
       $("#purchase_history_list").listview("refresh");
     }  

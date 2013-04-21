@@ -162,6 +162,7 @@ io.sockets.on('connection', function(socket){
   socket.on('changeItemQuantityInCart',function(itemID,itemAttID,custID,value){
     changeItemQuantityInCart(itemID,itemAttID,custID,value);
   });
+  socket.on('getCustomerSizeFromDB',function(custID){getSizeFromDB(socket,custID);});
   socket.on('resetCustCart',function(custID){resetCustCart(custID);});
   socket.on('getItemAttributes', function(ID){getItemAttributes(socket, ID);});
   socket.on('getItemListFromDB', function(){getItemListFromDB(socket);});
@@ -196,6 +197,17 @@ var purchaseInstArr = new Array();
 
 var shopping_cart = new Array();
 
+
+function getSizeFromDB(socket,custID) {
+  connection.query('SELECT shirtSize,pantSize,dressSize FROM Customer WHERE custID = ' + custID, function(err, rows) {
+    if(err) throw err;
+    else if (rows==null) {socket.emit('err', 'ERR: size from customer was null'); }
+    else {
+      socket.emit("retrieveSizeFromDB",rows);
+    }//end else
+  });//end query 
+  
+}  
 //function to convert javascript new Date into mysql DATE format YYYY-MM-DD
 Date.prototype.toYMD = Date_toYMD;
 function Date_toYMD() {
@@ -228,14 +240,12 @@ function setPurchaseInst(socket,custID,totalPrice,numItems,cart){
 }
 
 function setItemInst(socket,custID,purchaseInstID, cartItem) {
-  console.log(cartItem[0]);
-  console.log(cartItem);
-  console.log(cartItem.itemID);
-  console.log(cartItem[0].itemID);
-  /*connection.query('INSERT INTO Item_Inst (adjPrice, itemID, purchaseInstID, itemAttID) VALUES ('+cartItem.price+','+cartItem[0].itemID+','+purchaseInstID+','+cartItem[0].itemAttID+')', function(err,result) {
+
+  connection.query('INSERT INTO Item_Inst (adjPrice, itemID, purchaseInstID, itemAttID) VALUES ('+cartItem[0].price+','+cartItem[0].itemID+','+purchaseInstID+','+cartItem[0].itemAttID+')', function(err,result) {
     if (err) throw err;
     console.log("itemInstID: "+result.insertId);
-  });*/
+  });
+
 }
 
 function changeItemQuantityInCart(itemID,itemAttID,custID,value){
@@ -310,7 +320,7 @@ function getItemAttributes(socket, ID) {
 }  
 
 function getCustPurchaseHist(socket,ID){
-  connection.query('SELECT * FROM Item_Inst INNER JOIN Item ON Item_Inst.itemID = Item.itemID INNER JOIN Purchase_Inst ON Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID WHERE Purchase_Inst.custID = ' +ID, function(err2, rows) {
+  connection.query('SELECT * FROM Item_Inst INNER JOIN Item ON Item_Inst.itemID = Item.itemID INNER JOIN Item_Attribute ON Item.itemID = Item_Attribute.itemID INNER JOIN  Purchase_Inst ON Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID WHERE Purchase_Inst.custID = ' +ID, function(err2, rows) {
     if(err2) throw err2;
     else if (rows==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
     else {

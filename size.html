@@ -18,16 +18,34 @@
 <div data-role="page" data-theme="c" data-add-back-btn="true">
 <script src="/include.js"></script>
 <script>
-  connect();
-  addCustomerData(custID,custInfo);
+  connect("size");
 </script>
 	<div data-role="header" data-position="fixed">
 		<h1>Size Table</h1>
 	</div><!-- /header -->
 
 	<div data-role="content">
-	<h1>Steven Glansberg</h1>
-	<h3>Time in store - 27 minutes</h3>
+	<h1 id="customer">Place Holder</h1>
+	<h3 class="time">Time in store - N/A</h3>
+	<div class="ui-grid-b">
+                    <div class="ui-block-a">
+		      <strong><u>Shirt Size:</u></strong>
+                    </div>
+                    <div class="ui-block-b">
+		      <strong><u>Pant Size:</u></strong>
+                    </div>
+                    <div class="ui-block-c">
+		      <strong><u>Dress Size:</u></strong>
+                    </div>
+        </div>
+	<div class="ui-grid-b">
+		    <div id="shirt_size" class="ui-block-a">
+		    </div>
+		    <div id="pant_size" class="ui-block-b">
+		    </div>
+		    <div id="dress_size" class="ui-block-c">
+		    </div>
+	</div>
 
 
 	</div><!-- /content -->
