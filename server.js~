@@ -215,7 +215,7 @@ function getBrandListFromDB(socket,custID){
     }
       console.log(group);
     }
-   soket.emit('retreiveBrandData',group);
+   socket.emit('retreiveBrandData',group);
   });//end query
 }
 
@@ -297,8 +297,8 @@ function resetCustCart(custID){
   shopping_cart.splice(custID);
 }
 
-function getCustExistingCart(socket,custID,page){
-      socket.emit('receiveCustExistingCart',shopping_cart[custID], page);      
+function getCustExistingCart(socket,custID){
+      socket.emit('receiveCustExistingCart',shopping_cart[custID]);      
 }
 
 

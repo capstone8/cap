@@ -4,17 +4,18 @@
     var custID;
     var custInfo;
     var customerList = new Array();
+    var listeners = new Array();
     function connect(page) {
       if(firstconnect) {
         socket = io.connect(null);
         console.log("currently on page: " + page);
         switch (page) {
           case "customer":
-            socket.on('retrieveCustData', function (ID, cust, time) {
+            socket.once('retrieveCustData', function (ID, cust, time) {
               addCustomerData(ID, cust, time);
               custInfo = cust;
             });
-            socket.on('retrieveCustID', function(ID) { 
+            socket.once('retrieveCustID', function(ID) { 
               custID = ID;
               socket.emit("getCustData",custID);
             });
@@ -34,15 +35,15 @@
             socket.emit('getCustomerListFromFeed');
             break;
           case "purchase_history":
-            socket.on('retrieveCustData', function (ID, cust, time) {
+            socket.once('retrieveCustData', function (ID, cust, time) {
               custInfo = cust;
               $("h1#pp").text("Past Purchases - " + cust.firstName + " " + cust.lastName);
             });
-            socket.on('receiveCustPurchaseHist', function (purchaseHistArr) {
+            socket.once('receiveCustPurchaseHist', function (purchaseHistArr) {
               $("#purchase_history_list").html("");
               printPurchaseHistory(purchaseHistArr);
             });
-            socket.on('retrieveCustID', function(ID) { 
+            socket.once('retrieveCustID', function(ID) { 
               custID = ID;
               socket.emit("getCustData",custID);
               socket.emit("getCustPurchaseHist",custID);
@@ -51,8 +52,7 @@
             break;
           case "shopping_cart":
             socket.on('addToCart',function(item){addItemToCart(item);});
-            socket.once('receiveCustExistingCart', function(cart, page) {
-              if(page=="shopping_cart"){
+            socket.once('receiveCustExistingCart', function(cart) {
                 $("#shopping_cart_list").html("");
                 displayItemsInCart(cart,custID);
                 if(_.isEmpty(cart)){
@@ -61,17 +61,17 @@
                 } else {
                   $("a#checkout_button").removeClass("ui-disabled");
                 }  
-              }
+              
             });
             socket.once('retrieveCustID', function(ID) {
               console.log("here it is");
               custID = ID;
-              socket.emit('getCustExistingCart', custID, "shopping_cart");
+              socket.emit('getCustExistingCart', custID);
             });
             socket.emit('getCustomerID');
             break;
           case "search":
-            socket.on('retreiveCustomerListFromDB', function(custlist){
+            socket.once('retreiveCustomerListFromDB', function(custlist){
               $("#searchlist").html("");
               if (!_.isEmpty(custlist)){
                 _.uniq(custlist);
@@ -84,18 +84,12 @@
             socket.emit('getCustomerListFromDB');
             break;
           case "item_search":
-            socket.on('retrieveItemAttributes', function(ID, attributelist) {
-              $("ul#item"+ID).html("");
-              if(!_.isEmpty(attributelist)){
-                _.uniq(attributelist);
-                attributelist.sort();
-                for (var att in attributelist) {
-                  addAttributeToItem(ID, attributelist[att].itemAttID, attributelist[att],attributelist[att].itemID);
-                }
-              }
-              
-            });  
-            socket.on('retrieveItemListFromDB', function(itemlist){
+            var existingCart = new Array();
+            socket.once('receiveCustExistingCart', function(cart) {
+              existingCart = cart;
+              console.log("retrieved the cart");
+            });    
+            socket.once('retrieveItemListFromDB', function(itemlist){
               $("#item_searchlist").html("");
               if(!_.isEmpty(itemlist)){
                 _.uniq(itemlist);
@@ -106,6 +100,7 @@
               }
             });
             socket.emit('getItemListFromDB');
+            socket.emit('getCustExistingCart', custID);
             break;
           case "brands":  
             socket.once('retrieveCustData', function (ID, cust, time) {
@@ -216,18 +211,19 @@
     function addItemToCart(item,custID){
      
      // $("#shopping_cart_list").append("<li id=\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ "\"><a href=\"#\">" + item[0].category + " - " + item[0].brand + ":  "+ item[0].clotheSize + " ,  " + item[0].color + "    $" + item[0].price +"</a><button onClick=\"changeQuantityVal("+item[0].itemID+","+item[0].itemAttID+","+plus+")\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_num\" value=\""+item[0].quantity+"\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+item[0].itemID+","+item[0].itemAttID+","+minus+")\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_minus\" data-inline=\"true\">-</button><a onClick=\"removeItemFromCart("+item[0].itemID + ", " + item[0].itemAttID + ", " + custID + ","+ item[0].price +")\" href=\"#\"></a></li>").listview('refresh');
-      changeItemAdded(item,custID);
+      changeItemAdded(item[0],custID);
     }
     
     function changeItemAdded(item, custID) {
-        var $attribute = $('ul#item'+item[0].itemID+' li#att'+item[0].itemAttID);
+        console.log("yeaaaa");
+        var $attribute = $('ul#item'+item.itemID+' li#att'+item.itemAttID);
         $attribute.attr("data-theme", "b").trigger("create");
         $attribute.removeClass("ui-btn-hover-c");
         $attribute.removeClass("ui-btn-up-c");
         $attribute.addClass("ui-btn-hover-b");
         $attribute.addClass("ui-btn-up-b");
 	$attribute.addClass("ui-disabled");
-        $('ul#item'+item[0].itemID).listview("refresh");
+        $('ul#item'+item.itemID).listview("refresh");
     }  
     
     function displayItemsInCart(cart,custID){
@@ -280,6 +276,27 @@
     
     function loadItemAttributes(itemID) {
       socket.emit("getItemAttributes", itemID);
+      socket.once('retrieveItemAttributes', function(ID, attributelist) {
+              $("ul#item"+ID).html("");
+              if(!_.isEmpty(attributelist)){
+                _.uniq(attributelist);
+                attributelist.sort();
+                for (var att in attributelist) {
+                  var boughtFlag = false;
+                  for (var cartItem in existingCart) {
+                    console.log("cart item: " + existingCart[cartItem][0].itemAttID + " and item: "+attributelist[att].itemAttID);
+                    if (existingCart[cartItem][0].itemAttID == attributelist[att].itemAttID) {
+                      boughtFlag = true;
+                      console.log("found a match");
+                      break;
+                    } 
+                  }
+                  addAttributeToItem(ID, attributelist[att].itemAttID, attributelist[att],attributelist[att].itemID);
+                  if(boughtFlag) changeItemAdded(attributelist[att], custID);
+                }
+              }
+              
+            });
     }  
     
     function printPurchaseHistory(purchaseHistArr) {
@@ -338,7 +355,12 @@
 	$(".time").text("Time in Store - " + time); 
     }
     
+    function exitPage(theSocket,listeners) {
+      theSocket.removeListener('retrieveItemAttributes');
+    }  
+    
     function loadPage(page) {
+      exitPage(socket);
       switch (page) {
 	case 'pp':
 	socket.emit("setCustomerID", custID);

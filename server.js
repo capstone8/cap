@@ -151,8 +151,8 @@ io.sockets.on('connection', function(socket){
   
   socket.on('removeItemFromCart', function(itemID, itemAttID, custID){removeItemFromCart(itemID,itemAttID, custID);});
   
-  socket.on('getCustExistingCart',function(custID,page){
-    getCustExistingCart(socket,custID,page)});
+  socket.on('getCustExistingCart',function(custID){
+    getCustExistingCart(socket,custID)});
   socket.on('getCartItemFromDB',function(itemID,attID,custID){
     if (typeof shopping_cart[custID] == 'undefined'){
 	shopping_cart[custID] = new Array();
@@ -297,8 +297,8 @@ function resetCustCart(custID){
   shopping_cart.splice(custID);
 }
 
-function getCustExistingCart(socket,custID,page){
-      socket.emit('receiveCustExistingCart',shopping_cart[custID], page);      
+function getCustExistingCart(socket,custID){
+      socket.emit('receiveCustExistingCart',shopping_cart[custID]);      
 }
 
 
