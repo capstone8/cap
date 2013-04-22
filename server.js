@@ -104,6 +104,14 @@ server = http.createServer(function(req, res) {
         res.end();
       });
       break;
+      case '/gviz-api.js':
+      fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/javascript'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+      break;
       //shopping cart icon
      case '/assets/80-shopping-cart.png':
       fs.readFile(__dirname + path, function(err, data){

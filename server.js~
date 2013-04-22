@@ -104,6 +104,14 @@ server = http.createServer(function(req, res) {
         res.end();
       });
       break;
+      case '/gviz-api.js':
+      fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/javascript'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+      break;
       //shopping cart icon
      case '/assets/80-shopping-cart.png':
       fs.readFile(__dirname + path, function(err, data){
@@ -151,8 +159,8 @@ io.sockets.on('connection', function(socket){
   
   socket.on('removeItemFromCart', function(itemID, itemAttID, custID){removeItemFromCart(itemID,itemAttID, custID);});
   
-  socket.on('getCustExistingCart',function(custID,page){
-    getCustExistingCart(socket,custID,page)});
+  socket.on('getCustExistingCart',function(custID){
+    getCustExistingCart(socket,custID)});
   socket.on('getCartItemFromDB',function(itemID,attID,custID){
     if (typeof shopping_cart[custID] == 'undefined'){
 	shopping_cart[custID] = new Array();

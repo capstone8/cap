@@ -1,4 +1,5 @@
 
+
     var socket;
     var firstconnect = true;
     var custID;
@@ -134,8 +135,8 @@
 	    });
 	    socket.emit('getCustomerID');
 	    
-	    socket.once('receiveCustExistingCart', function(cart, parentPage) {
-              if(parentPage == "checkout"){
+	    socket.once('receiveCustExistingCart', function(cart) {
+             
               $("#checkout_list").html("");
 	      var totalPrice = 0;
 	      var numItems = 0;
@@ -151,7 +152,7 @@
                 socket.emit('setPurchaseInst',custID,totalPrice,numItems,cart);
                 socket.emit('resetCustCart',custID);
               }
-              }
+              
             });
 	    
 	    socket.once('retrieveCustID', function(ID) { 
@@ -169,11 +170,11 @@
         socket.socket.reconnect();
       }
     }
-    var brands_grouped = new Array();
+    
     function createBrandPieChart(brands){
-      for (var i in brands) {
-	brands_grouped.push(i);
-      }
+    
+      
+      
       
     }
     
@@ -184,6 +185,7 @@
     }
     
     function displayItemsForCheckout(cart,custID,totalPrice,numItems){
+
       if (_.isEmpty(cart)== false){
 	$("#checkout_list").append("<h3 style='text-align: center; background-color:#BABABA'>Your order has been processed!</h3>").listview('refresh');}
       for (var i in cart){

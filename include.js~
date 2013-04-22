@@ -1,10 +1,11 @@
 
+
     var socket;
     var firstconnect = true;
     var custID;
     var custInfo;
     var customerList = new Array();
-    var listeners = new Array();
+    var existingCart = new Array();
     function connect(page) {
       if(firstconnect) {
         socket = io.connect(null);
@@ -84,7 +85,7 @@
             socket.emit('getCustomerListFromDB');
             break;
           case "item_search":
-            var existingCart = new Array();
+            
             socket.once('receiveCustExistingCart', function(cart) {
               existingCart = cart;
               console.log("retrieved the cart");
@@ -134,8 +135,8 @@
 	    });
 	    socket.emit('getCustomerID');
 	    
-	    socket.once('receiveCustExistingCart', function(cart, parentPage) {
-              if(parentPage == "checkout"){
+	    socket.once('receiveCustExistingCart', function(cart) {
+             
               $("#checkout_list").html("");
 	      var totalPrice = 0;
 	      var numItems = 0;
@@ -151,7 +152,7 @@
                 socket.emit('setPurchaseInst',custID,totalPrice,numItems,cart);
                 socket.emit('resetCustCart',custID);
               }
-              }
+              
             });
 	    
 	    socket.once('retrieveCustID', function(ID) { 
@@ -169,11 +170,11 @@
         socket.socket.reconnect();
       }
     }
-    var brands_grouped = new Array();
+
     function createBrandPieChart(brands){
-      for (var i in brands) {
-	brands_grouped.push(i);
-      }
+    
+      
+      
       
     }
     
@@ -184,6 +185,7 @@
     }
     
     function displayItemsForCheckout(cart,custID,totalPrice,numItems){
+
       if (_.isEmpty(cart)== false){
 	$("#checkout_list").append("<h3 style='text-align: center; background-color:#BABABA'>Your order has been processed!</h3>").listview('refresh');}
       for (var i in cart){
@@ -277,26 +279,26 @@
     function loadItemAttributes(itemID) {
       socket.emit("getItemAttributes", itemID);
       socket.once('retrieveItemAttributes', function(ID, attributelist) {
-              $("ul#item"+ID).html("");
-              if(!_.isEmpty(attributelist)){
-                _.uniq(attributelist);
-                attributelist.sort();
-                for (var att in attributelist) {
-                  var boughtFlag = false;
-                  for (var cartItem in existingCart) {
-                    console.log("cart item: " + existingCart[cartItem][0].itemAttID + " and item: "+attributelist[att].itemAttID);
-                    if (existingCart[cartItem][0].itemAttID == attributelist[att].itemAttID) {
-                      boughtFlag = true;
-                      console.log("found a match");
-                      break;
-                    } 
-                  }
-                  addAttributeToItem(ID, attributelist[att].itemAttID, attributelist[att],attributelist[att].itemID);
-                  if(boughtFlag) changeItemAdded(attributelist[att], custID);
-                }
-              }
-              
-            });
+        $("ul#item"+ID).html("");
+        if(!_.isEmpty(attributelist)){
+          _.uniq(attributelist);
+          attributelist.sort();
+          for (var att in attributelist) {
+            var boughtFlag = false;
+            for (var cartItem in existingCart) {
+              console.log("cart item: " + existingCart[cartItem][0].itemAttID + " and item: "+attributelist[att].itemAttID);
+              if (existingCart[cartItem][0].itemAttID == attributelist[att].itemAttID) {
+                boughtFlag = true;
+                console.log("found a match");
+                break;
+              } 
+            }
+            addAttributeToItem(ID, attributelist[att].itemAttID, attributelist[att],attributelist[att].itemID);
+            if(boughtFlag) changeItemAdded(attributelist[att], custID);
+          }
+        }
+        
+      });
     }  
     
     function printPurchaseHistory(purchaseHistArr) {
