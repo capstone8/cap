@@ -12,10 +12,6 @@
         <script src="/socket.io/socket.io.js"></script>
         <script src="http://underscorejs.org/underscore-min.js"></script>
 
-<script type="text/javascript">
-
-</script>
-
 <div id="shopping_cart" data-role="page" data-theme="c" data-add-back-btn="true">
 <script src="/include.js"></script>
 <script>
@@ -37,8 +33,7 @@
                         <div data-role="navbar">
                                 <ul>
                                         <li><a href="index.html" data-icon="home" data-iconpos="bottom" data-transition="pop">Home</a></li>
-                                        <li><a onClick="loadPage('search')" href="#" data-icon="search" data-iconpos="bottom" data-transition="slideup">Search</a></li>
-                                </ul>
+                                        </ul>
                         </div><!-- /navbar -->
                 </div><!-- /footer -->
 </div><!-- /page -->

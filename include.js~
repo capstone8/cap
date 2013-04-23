@@ -9,7 +9,6 @@
     function connect(page) {
       if(firstconnect) {
         socket = io.connect(null);
-        console.log("currently on page: " + page);
         switch (page) {
           case "customer":
             socket.once('retrieveCustData', function (ID, cust, time) {
@@ -65,7 +64,6 @@
               
             });
             socket.once('retrieveCustID', function(ID) {
-              console.log("here it is");
               custID = ID;
               socket.emit('getCustExistingCart', custID);
             });
@@ -147,7 +145,6 @@
                 }
               }
               displayItemsForCheckout(cart,custID,totalPrice,numItems);
-              console.log("hey");
               if (_.isEmpty(cart)==false){
                 socket.emit('setPurchaseInst',custID,totalPrice,numItems,cart);
                 socket.emit('resetCustCart',custID);
@@ -170,12 +167,25 @@
         socket.socket.reconnect();
       }
     }
-
-    function createBrandPieChart(brands){
     
-      
-      
-      
+    function createBrandPieChart(brands){
+        var brandLabels = "";
+        var brandData = "";
+        var i = 0;
+        console.log(brands);
+        for (var brand in brands) {
+          if(i==0) {
+            brandData += brands[brand];
+            brandLabels += brand;
+          } else {
+            brandData += (","+brands[brand]);
+            brandLabels += ("|"+brand);
+          }
+          i++;  
+        }
+          console.log(brandData);
+          console.log(brandLabels);
+          $("#chart_div").html("<img src=\"//chart.googleapis.com/chart?chf=bg,s,67676700&chs=500x300&cht=p&chd=t:"+brandData+"&chds=a&chl="+brandLabels+"\" width=\"500\" height=\"300\" alt=\"\" />");
     }
     
     function addSize(size){
@@ -217,7 +227,6 @@
     }
     
     function changeItemAdded(item, custID) {
-        console.log("yeaaaa");
         var $attribute = $('ul#item'+item.itemID+' li#att'+item.itemAttID);
         $attribute.attr("data-theme", "b").trigger("create");
         $attribute.removeClass("ui-btn-hover-c");
@@ -306,10 +315,10 @@
       for (var i in purchaseHistArr) {
         
         var purchaseInst = purchaseHistArr[i];
-        
-        if(purchaseID!==purchaseInst.purchaseID){
-          purchaseID = purchaseInst.purchaseID;
-          $("#purchase_history_list").append("<li id=\"purchase"+purchaseInst.purchaseInstID+"\" data-role=\"list-divider\">"+purchaseInst.purchaseDate+"></li>").listview('refresh');
+        if(purchaseID!==purchaseInst.purchaseInstID){
+          purchaseID = purchaseInst.purchaseInstID;
+          var newDate = new Date(purchaseInst.purchaseDate);
+          $("#purchase_history_list").append("<li id=\"purchase"+purchaseInst.purchaseInstID+"\" data-role=\"list-divider\">"+(newDate.getMonth()+1)+"/"+newDate.getDate()+"/"+newDate.getFullYear()+" "+newDate.getHours()+":"+newDate.getMinutes()+":"+newDate.getSeconds()+"</li>").listview('refresh');
         }  
 
         $("#purchase_history_list").append("<li id=\"item"+purchaseInst.itemInstID+"\"<a href=\"#\"><h3>"+purchaseInst.category+"</h3><p><strong>"+purchaseInst.brand+"</strong></p><p>"+purchaseInst.clotheSize+"  " +purchaseInst.adjPrice+"</p></a></li>").listview("refresh");
@@ -354,7 +363,7 @@
 
     function addCustomerData(ID, cust, time) {
 	$("h1#customer").text(cust.firstName + " " + cust.lastName);
-	$(".time").text("Time in Store - " + time); 
+        $(".time").text("Entered the store " + time);
     }
     
     function exitPage(theSocket,listeners) {

@@ -1,5 +1,5 @@
 var util = require("./util.js");
-
+var timeago = require("timeago");
 var http = require('http')
 , url = require('url')
 , fs = require('fs')
@@ -104,7 +104,7 @@ server = http.createServer(function(req, res) {
         res.end();
       });
       break;
-      case '/gviz-api.js':
+      case '/timeago.js':
       fs.readFile(__dirname + path, function(err, data){
         if (err) return send404(res);
         res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/javascript'})
@@ -112,6 +112,14 @@ server = http.createServer(function(req, res) {
         res.end();
       });
       break;
+    case '/gviz-api.js':
+      fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/javascript'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+      break;  
       //shopping cart icon
      case '/assets/80-shopping-cart.png':
       fs.readFile(__dirname + path, function(err, data){
@@ -207,7 +215,8 @@ var purchaseInstArr = new Array();
 var shopping_cart = new Array();
 
 function getBrandListFromDB(socket,custID){
-  connection.query('SELECT brand FROM Item INNER JOIN Item_Inst ON Item.itemID = Item_Inst.itemID INNER JOIN Purchase_Inst ON Purchase_Inst.custID = ' + custID,function(err, rows){
+  connection.query('SELECT brand FROM Item, Item_Inst, Purchase_Inst WHERE Purchase_Inst.custID = ' + custID + ' AND Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID AND Item_Inst.itemID = Item.itemID', function(err,rows){
+  //INNER JOIN Item_Inst ON Item.itemID = Item_Inst.itemID INNER JOIN Purchase_Inst ON Purchase_Inst.custID = ' + custID,function(err, rows){
     if (err) throw err;
     else if (rows == null) {socket.emit('err','ERR: no brands'); }
     else {
@@ -258,7 +267,7 @@ function setPurchaseInst(socket,custID,totalPrice,numItems,cart){
  var dt = time.toYMD();
  console.log(dt);
   //console.log("setPurchaseInst: " +cart[i][j].itemID);
-  connection.query('INSERT INTO Purchase_Inst (purchaseDate,totalAmnt,numItems,custID) VALUES (\''+dt+'\','+totalPrice+','+numItems+','+custID+')', function(err, result) {
+  connection.query('INSERT INTO Purchase_Inst (purchaseDate,totalAmnt,numItems,custID) VALUES (now(),'+totalPrice+','+numItems+','+custID+')', function(err, result) {
     if (err) throw err;
       purchaseInstID = result.insertId;
       console.log("purchaseInstID: "+result.insertId);
@@ -269,12 +278,12 @@ function setPurchaseInst(socket,custID,totalPrice,numItems,cart){
 }
 
 function setItemInst(socket,custID,purchaseInstID, cartItem) {
-
-  connection.query('INSERT INTO Item_Inst (adjPrice, itemID, purchaseInstID, itemAttID) VALUES ('+cartItem[0].price+','+cartItem[0].itemID+','+purchaseInstID+','+cartItem[0].itemAttID+')', function(err,result) {
-    if (err) throw err;
-    console.log("itemInstID: "+result.insertId);
-  });
-
+  for(var i = 0; i<cartItem[0].quantity;i++){
+    connection.query('INSERT INTO Item_Inst (adjPrice, itemID, purchaseInstID, itemAttID) VALUES ('+cartItem[0].price+','+cartItem[0].itemID+','+purchaseInstID+','+cartItem[0].itemAttID+')', function(err,result) {
+      if (err) throw err;
+      console.log("itemInstID: "+result.insertId);
+    });
+  }
 }
 
 function changeItemQuantityInCart(itemID,itemAttID,custID,value){
@@ -349,7 +358,7 @@ function getItemAttributes(socket, ID) {
 }  
 
 function getCustPurchaseHist(socket,ID){
-  connection.query('SELECT * FROM Item_Inst INNER JOIN Item ON Item_Inst.itemID = Item.itemID INNER JOIN Item_Attribute ON Item.itemID = Item_Attribute.itemID INNER JOIN  Purchase_Inst ON Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID WHERE Purchase_Inst.custID = ' +ID, function(err2, rows) {
+  connection.query('SELECT * FROM Item, Item_Inst, Item_Attribute, Purchase_Inst WHERE Purchase_Inst.custID = ' + ID + ' AND Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID AND  Item_Inst.itemID = Item.itemID AND Item_Inst.itemAttID = Item_Attribute.itemAttID ORDER BY Purchase_Inst.purchaseInstID', function(err2, rows) {
     if(err2) throw err2;
     else if (rows==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
     else {
@@ -458,7 +467,8 @@ function getCustData(socket, ID) {
 	if (ID!=null) {
 		var cust;
 		if(typeof(custArr[ID]) != 'undefined') {
-		  socket.emit('retrieveCustData', ID, custArr[ID].cust, custArr[ID].time);
+                  var newDate = new Date();
+		  socket.emit('retrieveCustData', ID, custArr[ID].cust, timeago(custArr[ID].time));
 		}else {
 		  getCustomerFromDB(socket, ID, function(cust) {
                         if(cust.length > 0) {
