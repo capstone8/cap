@@ -22,6 +22,7 @@
             socket.emit('getCustomerID');
             break;
           case "index":
+            socket.on('alert', function(message) {console.log("he says " + message);});
             socket.on('removeCustomerFromFeed', function(ID) {removeCustomerFromFeed(ID);});
             socket.on('addCustomerToFeed', function(ID, cust, time) {addCustomerToFeed(ID, cust, time);});
             socket.on('isHelped',function(ID, helped){changeHelped(ID,helped); });

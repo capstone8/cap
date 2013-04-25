@@ -145,8 +145,24 @@ console.log("Connected to MySQL");
 // socket.io, I choose you
 var io = require('socket.io').listen(server);
 
+
+
+
 // on a 'connection' event
 io.sockets.on('connection', function(socket){
+
+    var util  = require('util'),
+    spawn = require('child_process').spawn,
+    ls    = spawn('python', ['test.py']);
+
+    ls.stdout.on('data', function(data) {
+      //socket.emit('news', gdata.toString());
+      //console.log("the angry python says: " + gdata)
+      console.log("dat angry python be like: " + data);
+      //socket.emit('alert', data);
+      //spawn = require('child_process').spawn;
+      //restartScript();
+    });
 
   console.log("Connection " + socket.id + " accepted.");
   socket.on('message', function(message){
@@ -199,6 +215,9 @@ io.sockets.on('connection', function(socket){
       }
     })
   });
+
+
+
     
 });
 
