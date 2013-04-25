@@ -156,12 +156,17 @@ io.sockets.on('connection', function(socket){
     ls    = spawn('python', ['test.py']);
 
     ls.stdout.on('data', function(data) {
-      //socket.emit('news', gdata.toString());
-      //console.log("the angry python says: " + gdata)
-      console.log("dat angry python be like: " + data);
-      //socket.emit('alert', data);
-      //spawn = require('child_process').spawn;
-      //restartScript();
+      console.log("read RFID: " + data);
+
+      connection.query('SELECT custID FROM Customer WHERE rfid = ' + data, function(err, rows) {
+        if(err) throw err;
+        else if (rows==null) {socket.emit('err', 'ERR: no customer matches that rfid'); }
+        else {
+          cusEnterLeave(rows[0])
+        }//end else
+      });//end query 
+      //cusEnterLeave(data);
+
     });
 
   console.log("Connection " + socket.id + " accepted.");
@@ -436,7 +441,7 @@ function custHelped(socket,ID){
 
 
 	
-function cusEnterLeave(socket, ID) {
+function cusEnterLeave(ID) {
 
 	if( ID != null && typeof(custArr[ID]) != 'undefined') {		
 		//free memory somehow		
@@ -450,7 +455,7 @@ function cusEnterLeave(socket, ID) {
 				custArr[ID] = {cust: cust[0], time: time, helped: false};
 				io.sockets.emit('addCustomerToFeed', ID, custArr[ID].cust, custArr[ID].time);
 			} else {
-				socket.emit('err', "wtf");
+        io.sockets.emit('err', 'wtf');
 			}
 		});            
             
