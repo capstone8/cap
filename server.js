@@ -456,7 +456,7 @@ function cusEnterLeave(ID) {
 	} else if (ID!=null) {
 		var cust;
 		getCustomerFromDB(ID, function(cust) {
-			if(cust.length() > 0) {
+			if(_.isEmpty(cust) == false) {
 				var time = new Date();
 				custArr[ID] = {cust: cust[0], time: time, helped: false};
 				io.sockets.emit('addCustomerToFeed', ID, custArr[ID].cust, custArr[ID].time);
