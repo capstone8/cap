@@ -157,19 +157,21 @@ io.sockets.on('connection', function(socket){
 
     ls.stdout.on('data', function(data) {
       console.log("read RFID: " + data);
-	//data = "'" + data + "'";
-/*	connection.query("UPDATE Customer SET rfid = \'" + data + "\' WHERE custID = 4", function(err, rows) {
+	console.log(String(data).length);
+/*	connection.query("UPDATE Customer SET rfid = \'" + String(data).trim() + "\' WHERE custID = 1", function(err, rows) {
 		console.log("rfid " + data + " was inserted");
 		console.log(rows);
 	});*/
-      connection.query("SELECT custID FROM Customer WHERE rfid = \' + data + \'", function(err, rows) {
+     connection.query("SELECT * FROM Customer WHERE rfid = \'" + String(data).trim() + "\'", function(err, rows) {
         if(err) throw err;
         else if (rows==0) {socket.emit('err', 'ERR: no customer matches that rfid'); }
         else {
-		console.log(rows[0]);
-          cusEnterLeave(rows[0])
+		//console.log(String(data).length);
+		console.log(rows[0].custID);
+          	cusEnterLeave(rows[0].custID)
         }//end else
-      });//end query 
+      });//end query
+	 
      // cusEnterLeave(data);
 
     });
@@ -444,7 +446,6 @@ function custHelped(socket,ID){
 	}
 }
 
-
 	
 function cusEnterLeave(ID) {
 
@@ -455,7 +456,7 @@ function cusEnterLeave(ID) {
 	} else if (ID!=null) {
 		var cust;
 		getCustomerFromDB(ID, function(cust) {
-			if(cust.length > 0) {
+			if(len(cust) > 0) {
 				var time = new Date();
 				custArr[ID] = {cust: cust[0], time: time, helped: false};
 				io.sockets.emit('addCustomerToFeed', ID, custArr[ID].cust, custArr[ID].time);
