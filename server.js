@@ -456,36 +456,30 @@ function cusEnterLeave(ID) {
 	} else if (ID!=null) {
 		var cust;
 		getCustomerFromDB(ID, function(cust) {
-			if(len(cust) > 0) {
+			if(cust.length() > 0) {
 				var time = new Date();
 				custArr[ID] = {cust: cust[0], time: time, helped: false};
 				io.sockets.emit('addCustomerToFeed', ID, custArr[ID].cust, custArr[ID].time);
 			} else {
         io.sockets.emit('err', 'wtf');
 			}
-		});            
-            
-            
-            
-            
-            
-		//console.log("look here fuckface" + rows[0].empID);		
-		
+		});
 	} else {
 		io.sockets.emit('err', "no id");
 	}
 }
 
 
-function getCustomerFromDB(socket, ID, callback) {
+function getCustomerFromDB(ID, callback) {
 
 	if(ID == null) {
-		socket.emit('err', "error getCustomerFromDB: ID = NULL");
+		//socket.emit('err', "error getCustomerFromDB: ID = NULL");
 		return;
 	} else {
 		connection.query('SELECT * FROM Customer WHERE custID = ' + ID, function(err, rows) {
 			if (err) throw err;
-			else if (rows==null) { socket.emit('err', 'seriouslyfuckyou'); }
+			else if (rows==null) { //socket.emit('err', 'seriouslyfuckyou'); 
+      }
 			else {
 				callback(rows);
 			}
