@@ -157,15 +157,20 @@ io.sockets.on('connection', function(socket){
 
     ls.stdout.on('data', function(data) {
       console.log("read RFID: " + data);
-
-      connection.query('SELECT custID FROM Customer WHERE rfid = ' + data, function(err, rows) {
+	//data = "'" + data + "'";
+/*	connection.query("UPDATE Customer SET rfid = \'" + data + "\' WHERE custID = 4", function(err, rows) {
+		console.log("rfid " + data + " was inserted");
+		console.log(rows);
+	});*/
+      connection.query("SELECT custID FROM Customer WHERE rfid = \' + data + \'", function(err, rows) {
         if(err) throw err;
-        else if (rows==null) {socket.emit('err', 'ERR: no customer matches that rfid'); }
+        else if (rows==0) {socket.emit('err', 'ERR: no customer matches that rfid'); }
         else {
+		console.log(rows[0]);
           cusEnterLeave(rows[0])
         }//end else
       });//end query 
-      //cusEnterLeave(data);
+     // cusEnterLeave(data);
 
     });
 
@@ -174,7 +179,7 @@ io.sockets.on('connection', function(socket){
     console.log("Received message: " + message + " - from client " + socket.id);
   });
 //listener for customer entering/leaving the store
-  socket.on('cusEnterLeave', function (ID) { cusEnterLeave(socket, ID); });
+  socket.on('cusEnterLeave', function (ID) { cusEnterLeave(ID); });
 //listener for customer being helped at the store 
   socket.on('custHelped',function(ID){custHelped(socket,ID); });
 //listener for customer.html query
@@ -449,7 +454,7 @@ function cusEnterLeave(ID) {
 		io.sockets.emit('removeCustomerFromFeed', ID);
 	} else if (ID!=null) {
 		var cust;
-		getCustomerFromDB(socket, ID, function(cust) {
+		getCustomerFromDB(ID, function(cust) {
 			if(cust.length > 0) {
 				var time = new Date();
 				custArr[ID] = {cust: cust[0], time: time, helped: false};
@@ -466,7 +471,7 @@ function cusEnterLeave(ID) {
 		//console.log("look here fuckface" + rows[0].empID);		
 		
 	} else {
-		socket.emit('err', "no id");
+		io.sockets.emit('err', "no id");
 	}
 }
 

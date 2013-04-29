@@ -9,7 +9,10 @@ while True:
     if len(string) == 0:
         continue
     else:
-        sys.stdout.write(string)
+	#string = bin(reduce(lambda x, y: 256*x+y, (ord(c) for c in string), 0))
+        for c in string:
+		sys.stdout.write('%#x' % ord(c))
+	#sys.stdout.write('\n')
 	sys.stdout.flush()
 	ser.flushInput()
 	time.sleep(3)
