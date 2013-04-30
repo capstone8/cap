@@ -304,17 +304,20 @@ function setPurchaseInst(socket,custID,totalPrice,numItems,cart){
       console.log("purchaseInstID: "+result.insertId);
       for (var item in cart) {
         setItemInst(socket, custID, purchaseInstID, cart[item]);
-      }  
+      }
     });
 }
 
 function setItemInst(socket,custID,purchaseInstID, cartItem) {
-  for(var i = 0; i<cartItem[0].quantity;i++){
-    connection.query('INSERT INTO Item_Inst (adjPrice, itemID, purchaseInstID, itemAttID) VALUES ('+cartItem[0].price+','+cartItem[0].itemID+','+purchaseInstID+','+cartItem[0].itemAttID+')', function(err,result) {
-      if (err) throw err;
-      console.log("itemInstID: "+result.insertId);
+	
+	//for(var i = 0; i<cartItem[0].quantity;i++){
+    	for (var item in cartItem){
+	connection.query('INSERT INTO Item_Inst (adjPrice, itemID, purchaseInstID, itemAttID) VALUES ('+cartItem[item].price+','+cartItem[item].itemID+','+purchaseInstID+','+cartItem[item].itemAttID+')', function(err,result) {
+      		if (err) throw err;
+      		console.log("itemInstID: "+result.insertId);
     });
   }
+
 }
 
 function changeItemQuantityInCart(itemID,itemAttID,custID,value){

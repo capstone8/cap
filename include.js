@@ -105,6 +105,7 @@
           case "brands":  
             socket.once('retrieveCustData', function (ID, cust, time) {
               custInfo = cust;
+	       $("h1#pp").text("Past Purchases - " + cust.firstName + " " + cust.lastName);
             });
             socket.once('retrieveCustID', function(ID) { 
               custID = ID;
