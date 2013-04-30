@@ -18,6 +18,7 @@ var _ = require('underscore');
 server = http.createServer(function(req, res) {
   // your normal server code
   var path = url.parse(req.url).pathname;
+	//security measure to double check each page
   switch (path){
     case '/':
       res.writeHead(200, {'Content-Type': 'text/html'});
@@ -159,31 +160,29 @@ var io = require('socket.io').listen(server);
 // on a 'connection' event
 io.sockets.on('connection', function(socket){
 
+	//RFID python script child process
     var util  = require('util'),
     spawn = require('child_process').spawn,
     ls    = spawn('python', ['test.py']);
 
+	
+	//RFID read-in process
     ls.stdout.on('data', function(data) {
       console.log("read RFID: " + data);
 	console.log(String(data).length);
-/*	connection.query("UPDATE Customer SET rfid = \'" + String(data).trim() + "\' WHERE custID = 1", function(err, rows) {
-		console.log("rfid " + data + " was inserted");
-		console.log(rows);
-	});*/
      connection.query("SELECT * FROM Customer WHERE rfid = \'" + String(data).trim() + "\'", function(err, rows) {
         if(err) throw err;
         else if (rows==0) {socket.emit('err', 'ERR: no customer matches that rfid'); }
         else {
-		//console.log(String(data).length);
 		console.log(rows[0].custID);
           	cusEnterLeave(rows[0].custID)
         }//end else
       });//end query
 	 
-     // cusEnterLeave(data);
 
     });
 
+	
   console.log("Connection " + socket.id + " accepted.");
   socket.on('message', function(message){
     console.log("Received message: " + message + " - from client " + socket.id);
@@ -201,28 +200,44 @@ io.sockets.on('connection', function(socket){
     connection.end();
   });
   
+  //listener for when an item is removed from cart
   socket.on('removeItemFromCart', function(itemID, itemAttID, custID){removeItemFromCart(itemID,itemAttID, custID);});
+  //listener for when user is assigned a rank based on purchase history
   socket.on('getRank',function(custID){getTotalAmntSpentFromDB(custID,socket);})  
+  //gets any existing items in the customer's cart
   socket.on('getCustExistingCart',function(custID){
     getCustExistingCart(socket,custID)});
+  //adds database informtion to cart
   socket.on('getCartItemFromDB',function(itemID,attID,custID){
     if (typeof shopping_cart[custID] == 'undefined'){
 	shopping_cart[custID] = new Array();
     }
     getCartItemFromDB(socket,itemID,attID,custID)});
+  //creates a new purchase instance when an item is bought
   socket.on('setPurchaseInst',function(custID,totalPrice,numItems,cart){setPurchaseInst(socket,custID,totalPrice,numItems,cart);});
+  //changes an item's quantity
   socket.on('changeItemQuantityInCart',function(itemID,itemAttID,custID,value){
     changeItemQuantityInCart(itemID,itemAttID,custID,value);
   });
+  //sums the total brands from the customer's purchase history
   socket.on('getBrandListFromDB',function(custID){getBrandListFromDB(socket,custID); });
+  //get's the customer's size information
   socket.on('getCustomerSizeFromDB',function(custID){getSizeFromDB(socket,custID);});
+  //clears the customer's cart
   socket.on('resetCustCart',function(custID){resetCustCart(custID);});
+  //loads item attributes dynamically when a user selects a specific item in item search
   socket.on('getItemAttributes', function(ID){getItemAttributes(socket, ID);});
+  //gets all of the clothes items from the db
   socket.on('getItemListFromDB', function(){getItemListFromDB(socket);});
+  //gets all of the customer's previous purchases
   socket.on('getCustPurchaseHist', function(ID){getCustPurchaseHist(socket,ID)});
+  //sets the client's currently viewing customerID
   socket.on('setCustomerID', function(ID){setCustomerID(socket, ID);});
+  //gets the client's currently viewing customerID
   socket.on('getCustomerID', function(ID){getCustomerID(socket, ID);});
+  //gets the list of customers currently in the store
   socket.on('getCustomerListFromFeed', function() {getCustomerListFromFeed(socket);});
+  //gets the total list of customers in the database for the search utility
   socket.on('getCustomerListFromDB',function(){getCustomerListFromDB(
     function(custListFromDB){
       if (typeof customersDB !== 'undefined' && customersDB.length > 0) {
@@ -241,6 +256,7 @@ io.sockets.on('connection', function(socket){
     
 });
 
+//globals
 var customersDB = new Array();
 var first = 'false';
 //array to keep track of customers enter/leave the store
@@ -256,7 +272,7 @@ var shopping_cart = new Array();
 function getTotalAmntSpentFromDB(custID,socket){
 	connection.query('SELECT SUM(totalAmnt) AS total FROM Purchase_Inst WHERE custID = ' + custID, function(err, rows) {
     if(err) throw err;
-    else if (rows==null) {socket.emit('err', 'ERR: totalAmnt was null'); }
+    else if (rows==0) {socket.emit("retrieveTotalAmntFromDB", 0); }
     else {
 	console.log(rows[0].total);
         socket.emit("retrieveTotalAmntFromDB",rows[0].total);
@@ -266,7 +282,7 @@ function getTotalAmntSpentFromDB(custID,socket){
 }
 function getBrandListFromDB(socket,custID){
   connection.query('SELECT brand FROM Item, Item_Inst, Purchase_Inst WHERE Purchase_Inst.custID = ' + custID + ' AND Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID AND Item_Inst.itemID = Item.itemID', function(err,rows){
-  //INNER JOIN Item_Inst ON Item.itemID = Item_Inst.itemID INNER JOIN Purchase_Inst ON Purchase_Inst.custID = ' + custID,function(err, rows){
+
     if (err) throw err;
     else if (rows == null) {socket.emit('err','ERR: no brands'); }
     else {
@@ -436,7 +452,7 @@ function getCustomerListFromDB(callback){
   //change back to customer and add a query to personal info with custID
   connection.query('SELECT * FROM Customer', function(err, rows) {
 	   if (err) throw err;
-	  else if (rows == null) { socket.emit('err', 'seriouslyfuckyou'); }
+	  else if (rows == null) { socket.emit('err', 'no customer list from db'); }
 			else {
 				callback(rows);
 			}
@@ -468,7 +484,7 @@ function custHelped(socket,ID){
 		custArr[ID].helped = true;
 		io.sockets.emit('isHelped', true, ID); //customer will be marked as helped
 	} else {
-		socket.emit('err', "wtf");
+		socket.emit('err', "error");
 	}
 }
 
@@ -477,7 +493,7 @@ function cusEnterLeave(ID) {
 
 	if( ID != null && typeof(custArr[ID]) != 'undefined') {		
 		//free memory somehow		
-		custArr.splice(ID,1);
+		delete custArr[ID];
 		io.sockets.emit('removeCustomerFromFeed', ID);
 	} else if (ID!=null) {
 		var cust;
@@ -487,7 +503,7 @@ function cusEnterLeave(ID) {
 				custArr[ID] = {cust: cust[0], time: time, helped: false};
 				io.sockets.emit('addCustomerToFeed', ID, custArr[ID].cust, custArr[ID].time);
 			} else {
-        io.sockets.emit('err', 'wtf');
+        io.sockets.emit('err', 'error');
 			}
 		});
 	} else {
@@ -503,7 +519,8 @@ function getCustomerFromDB(ID, callback) {
 	} else {
 		connection.query('SELECT * FROM Customer WHERE custID = ' + ID, function(err, rows) {
 			if (err) throw err;
-			else if (rows==null) { //socket.emit('err', 'seriouslyfuckyou'); 
+			else if (rows==null) {
+			
       }
 			else {
 				callback(rows);
@@ -523,7 +540,7 @@ function getCustData(socket, ID) {
                         if(cust.length > 0) {
                                 io.sockets.emit('retrieveCustData', ID, cust[0], "N/A");
                         } else {
-                                socket.emit('err', "wtf");
+                                socket.emit('err', "error");
                         }
                 });
 		}	

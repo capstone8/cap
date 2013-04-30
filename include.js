@@ -1,4 +1,5 @@
 
+	//begin client-side code
 
     var socket;
     var firstconnect = true;
@@ -6,9 +7,13 @@
     var custInfo;
     var customerList = new Array();
     var existingCart = new Array();
+	//code to run when a new page is loaded
     function connect(page) {
       if(firstconnect) {
         socket = io.connect(null);
+		//switch statement for the page being loaded
+		//each page will have emits and listeners, mostly set in a hierarchical manner
+		//so that some data isn't collected into other data is made availible to it.
         switch (page) {
           case "customer":
 			socket.once('retrieveTotalAmntFromDB', function (total) {convertTotalAmntToPoints(total); });
@@ -170,6 +175,7 @@
       }
     }
     
+	//converts the total purchase amount to points and gives the customer a rank
     function convertTotalAmntToPoints(total){
 		if (total<1000){
 			$("h1#customer").append(" - Normal");
@@ -180,6 +186,8 @@
                 } else
                         $("h1#customer").append(" - Executive");
     }
+	
+	//consults google charts and creates a pretty-printed graph of the customer's brand choices
     function createBrandPieChart(brands){
         var brandLabels = "";
         var brandData = "";
@@ -200,29 +208,42 @@
           $("#chart_div").html("<img src=\"//chart.googleapis.com/chart?chf=bg,s,67676700&chs=500x300&cht=p&chd=t:"+brandData+"&chds=a&chl="+brandLabels+"\" width=\"auto\" height=\"300\" alt=\"\" />");
     }
     
+	//adds size to the customer's information
     function addSize(size){
-	$("#shirt_size").append(size[0].shirtSize);
-	$("#pant_size").append(size[0].pantSize);
-	$("#dress_size").append(size[0].dressSize);
+		if(size[0].shirtSize!==null){
+			$("#shirt_size").append("<h1>"+size[0].shirtSize+"</h1>");
+		} else {
+			$("#shirt_size").append("<h1>N/A</h1>");
+		}
+		if(size[0].pantSize!==null){
+			$("#pant_size").append("<h1>"+size[0].pantSize+"</h1>");
+		} else {
+			$("#pant_size").append("<h1>N/A</h1>");
+		}
+		if(size[0].dressSize!==null){
+			$("#dress_size").append("<h1>"+size[0].dressSize+"</h1>");
+		} else {
+			$("#dress_size").append("<h1>N/A</h1>");
+		}
     }
     
+	//displays checkout page and the items purchased
     function displayItemsForCheckout(cart,custID,totalPrice,numItems){
-
-      if (_.isEmpty(cart)== false){
-	$("#checkout_list").append("<h3 style='text-align: center; background-color:#BABABA'>Your order has been processed!</h3>").listview('refresh');}
-      for (var i in cart){
-	for (var j in cart[i]){
-		//console.log(cart[i][j].quantity);
-	        $("#checkout_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"  Quantity: "+ cart[i][j].quantity+ "</li>").listview('refresh');
-		//chan1geItemAdded(cart[i],custID);
-	}
-      }//end for
-      $("#checkout_list").append("<br/><br/><span id='total'><u>Number of Items:</u><b> "+ numItems +"</b><br/><br/><u>Total Price:</u><b>$"+ totalPrice +"<b></span>").listview('refresh');
+		  if (_.isEmpty(cart)== false){
+		$("#checkout_list").append("<h3 style='text-align: center; background-color:#BABABA'>Your order has been processed!</h3>").listview('refresh');}
+		  for (var i in cart){
+		for (var j in cart[i]){
+				$("#checkout_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"  Quantity: "+ cart[i][j].quantity+ "</li>").listview('refresh');
+		}
+		  }//end for
+		  $("#checkout_list").append("<br/><br/><span id='total'><u>Number of Items:</u><b> "+ numItems +"</b><br/><br/><u>Total Price:</u><b>$"+ totalPrice +"<b></span>").listview('refresh');
     }
+	
+	//removes an items from the current shopping cart
     function removeItemFromCart(itemID,itemAttID,custID){
       //implement remove item from cart
       console.log(itemID + ", " + itemAttID + ", " + custID);
-      //alert(item.itemID + " " + item.itemAttID);
+      
       var node = document.getElementById('item' + itemID +'_itemAtt'+itemAttID);
       if(node.parentNode) {
 		var theParent = node.parentNode;
@@ -237,12 +258,15 @@
     var plus = "plus";
     var minus = "minus";
     
+	
+	//adds an item from the item search page to the current shopping cart
     function addItemToCart(item,custID){
      
      // $("#shopping_cart_list").append("<li id=\""+'item' + item[0].itemID +'_itemAtt'+item[0].itemAttID+ "\"><a href=\"#\">" + item[0].category + " - " + item[0].brand + ":  "+ item[0].clotheSize + " ,  " + item[0].color + "    $" + item[0].price +"</a><button onClick=\"changeQuantityVal("+item[0].itemID+","+item[0].itemAttID+","+plus+")\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_num\" value=\""+item[0].quantity+"\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+item[0].itemID+","+item[0].itemAttID+","+minus+")\" id=\"item" + item[0].itemID + "itemAttID"+item[0].itemAttID+"_minus\" data-inline=\"true\">-</button><a onClick=\"removeItemFromCart("+item[0].itemID + ", " + item[0].itemAttID + ", " + custID + ","+ item[0].price +")\" href=\"#\"></a></li>").listview('refresh');
       changeItemAdded(item[0],custID);
     }
     
+	//adjust the visual representation of an item after it is added
     function changeItemAdded(item, custID) {
         var $attribute = $('ul#item'+item.itemID+' li#att'+item.itemAttID);
         $attribute.attr("data-theme", "b").trigger("create");
@@ -250,21 +274,23 @@
         $attribute.removeClass("ui-btn-up-c");
         $attribute.addClass("ui-btn-hover-b");
         $attribute.addClass("ui-btn-up-b");
-	$attribute.addClass("ui-disabled");
+		$attribute.addClass("ui-disabled");
         $('ul#item'+item.itemID).listview("refresh");
     }  
     
+	//displays the items in the shopping cart
     function displayItemsInCart(cart,custID){
       //checkout_cart=[];
       for (var i in cart){
 	for (var j in cart[i]){
 	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><div class=\"inc button\" onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">+</div><input type=\"text\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" value=\""+cart[i][j].quantity+"\" disabled=\"disabled\" /><div class=\"dec button\" onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">-</div><a onClick=\"removeItemFromCart("+cart[i][j].itemID + ", " + cart[i][j].itemAttID + ", " + custID + ")\" href=\"#\"></a></li>").listview('refresh');
 	}
-	//changeItemAdded(cart[i],custID);
+
       }//end for
       
     }
     
+	//changes the quantity of an item in the cart
     function changeQuantityVal(itemID,itemAttID,action){
       var value = $('#item'+itemID+'itemAttID'+itemAttID+'_num').val();
       switch (action) {
@@ -275,18 +301,22 @@
 	    $('#item'+itemID+'itemAttID'+itemAttID+'_num').val(value);   
 	    break;
 	  case "minus":
-	    value--;
-	    socket.emit('changeItemQuantityInCart',itemID,itemAttID,custID,value);
-	    $("#refresh_btn").removeClass('ui-disabled');
-	    $('#item'+itemID+'itemAttID'+itemAttID+'_num').val(value);
+		if(value>=0){
+			value--;
+			socket.emit('changeItemQuantityInCart',itemID,itemAttID,custID,value);
+			$("#refresh_btn").removeClass('ui-disabled');
+			$('#item'+itemID+'itemAttID'+itemAttID+'_num').val(value);
+		}
 	    break;
       }
     }
+	//requests an item from the db when it is added to cart
     function addToCart(itemID,attID){
       socket.emit("getCartItemFromDB",itemID,attID,custID);
       
     }
 
+	//adds the attribute list to an item dynamically after the item is pressed
     function addAttributeToItem(ID, attID, attribute,itemID) {
       var $ul = $('ul#item'+ID);
       
@@ -298,10 +328,12 @@
       }
     }  
     
+	//adds an item to the item search feed
     function addItemToSearchFeed(ID, item) {
       $('#item_searchlist').append("<div data-role=\"collapsible\" data-inset\"false\"><h3 onClick=\"loadItemAttributes("+ID+")\">" + item.category + " - " + item.brand + "</h3><ul id=\"item"+ID+"\" data-role=\"listview\" data-inset=\"false\" data-filter=\"true\" data-filter-reveal=\"true\" data-filter-placeholder=\"Search Item..\"></ul></div>").collapsibleset("refresh");
     }
     
+	//loads the item attributes for an item in the search feed
     function loadItemAttributes(itemID) {
       socket.emit("getItemAttributes", itemID);
       socket.once('retrieveItemAttributes', function(ID, attributelist) {
@@ -329,6 +361,7 @@
       });
     }  
     
+	//shows a customer's past purchases
     function printPurchaseHistory(purchaseHistArr) {
       var purchaseID = -1;
       for (var i in purchaseHistArr) {
@@ -345,10 +378,12 @@
       $("#purchase_history_list").listview("refresh");
     }  
     
+	//when the "helped" button is pressed on index.html for a customer
     function isHelped(ID){
         socket.emit('custHelped',ID);                       
     }
 
+	//removes a customer from feed after he/she leaves store
     function removeCustomerFromFeed(ID) {
       var node = document.getElementById('cust'+ID);
       if(node.parentNode) {
@@ -356,15 +391,20 @@
       }    
     }
 
+	//adds customer from feed after he/she enters store
     function addCustomerToFeed(ID, cust, time) {
 	  var newDate = new Date(time);
       $('#t').prepend("<li id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName + " - " + (newDate.getMonth()+1)+"/"+newDate.getDate()+"/"+newDate.getFullYear()+" "+newDate.getHours()+":"+newDate.getMinutes()+":"+newDate.getSeconds() + "<img src = \"" + cust.picPath + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview('refresh');
     }
     
+	//adds a customer to the customer search page
     function addCustomerToSearchFeed(ID, cust) {
       $('#searchlist').append("<li class='customer' id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName +"</a></li>").listview('refresh');
     }  
     
+	//when a page change is made and a customer is currently being viewed,
+	//set the global customer ID for that specific client so the next page
+	//can receive it.
     function sendIdToCustomerPage(ID) {
 		console.log("this is our ID: " +ID);
       socket.emit("setCustomerID", ID);
@@ -376,21 +416,25 @@
       });
     }
 
+	//when an id is read in (manually) (old)
     function idRead() {
         var idIn = document.getElementById('inputbx').value;
         socket.emit("cusEnterLeave", idIn);
         document.getElementById('inputbx').value = "";
     }
 
+	//adds the data for a customer
     function addCustomerData(ID, cust, time) {
 	$("h1#customer").text(cust.firstName + " " + cust.lastName);
         $(".time").text("Entered the store " + time);
     }
     
+	//helper for the item search page
     function exitPage(theSocket,listeners) {
       theSocket.removeListener('retrieveItemAttributes');
     }  
     
+	//function for when a page is loaded to change the current page
     function loadPage(page) {
       exitPage(socket);
       switch (page) {
@@ -462,6 +506,7 @@
       
     }
     
+	//sends the customer id to the customer page
 function sendIdToCustomerPage(ID) {
 	socket.emit("setCustomerID", ID);
 	$.mobile.changePage( "/customer.html", {
@@ -472,7 +517,7 @@ function sendIdToCustomerPage(ID) {
 	});
 }
 
-
+//adjust the color scheme of a customer after they've been helped
 function changeHelped (helped, ID){
 	if (helped){
 		$("#cust" + ID + " .ui-li").css("background-color","yellow");
