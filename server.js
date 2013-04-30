@@ -129,6 +129,14 @@ server = http.createServer(function(req, res) {
         res.end();
       });
       break;
+	case '/assets/buttons.png':
+      fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'image/png'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+      break;  
     default: send404(res);
   }
 }),
@@ -194,7 +202,7 @@ io.sockets.on('connection', function(socket){
   });
   
   socket.on('removeItemFromCart', function(itemID, itemAttID, custID){removeItemFromCart(itemID,itemAttID, custID);});
-  
+  socket.on('getRank',function(custID){getTotalAmntSpentFromDB(custID,socket);})  
   socket.on('getCustExistingCart',function(custID){
     getCustExistingCart(socket,custID)});
   socket.on('getCartItemFromDB',function(itemID,attID,custID){
@@ -245,6 +253,17 @@ var purchaseInstArr = new Array();
 
 var shopping_cart = new Array();
 
+function getTotalAmntSpentFromDB(custID,socket){
+	connection.query('SELECT SUM(totalAmnt) AS total FROM Purchase_Inst WHERE custID = ' + custID, function(err, rows) {
+    if(err) throw err;
+    else if (rows==null) {socket.emit('err', 'ERR: totalAmnt was null'); }
+    else {
+	console.log(rows[0].total);
+        socket.emit("retrieveTotalAmntFromDB",rows[0].total);
+    }//end else
+  });//end query 
+
+}
 function getBrandListFromDB(socket,custID){
   connection.query('SELECT brand FROM Item, Item_Inst, Purchase_Inst WHERE Purchase_Inst.custID = ' + custID + ' AND Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID AND Item_Inst.itemID = Item.itemID', function(err,rows){
   //INNER JOIN Item_Inst ON Item.itemID = Item_Inst.itemID INNER JOIN Purchase_Inst ON Purchase_Inst.custID = ' + custID,function(err, rows){
@@ -312,20 +331,24 @@ function setItemInst(socket,custID,purchaseInstID, cartItem) {
 	
 	//for(var i = 0; i<cartItem[0].quantity;i++){
     	for (var item in cartItem){
-	connection.query('INSERT INTO Item_Inst (adjPrice, itemID, purchaseInstID, itemAttID) VALUES ('+cartItem[item].price+','+cartItem[item].itemID+','+purchaseInstID+','+cartItem[item].itemAttID+')', function(err,result) {
+			for(var i = 0;i<cartItem[item].quantity;i++){
+			connection.query('INSERT INTO Item_Inst (adjPrice, itemID, purchaseInstID, itemAttID) VALUES ('+cartItem[item].price+','+cartItem[item].itemID+','+purchaseInstID+','+cartItem[item].itemAttID+')', function(err,result) {
       		if (err) throw err;
       		console.log("itemInstID: "+result.insertId);
     });
+	}
   }
 
 }
 
 function changeItemQuantityInCart(itemID,itemAttID,custID,value){
   for (var i in shopping_cart[custID]){
-      if (shopping_cart[custID][i][0].itemID == itemID && shopping_cart[custID][i][0].itemAttID == itemAttID){
-	shopping_cart[custID][i][0].quantity = value;
-	//console.log("Quantity: " +shopping_cart[custID][i][0].quantity );
-      }
+	for (var j in shopping_cart[custID][i]){
+      		if (shopping_cart[custID][i][j].itemID == itemID && shopping_cart[custID][i][j].itemAttID == itemAttID){
+		shopping_cart[custID][i][j].quantity = value;
+		console.log("Quantity: " +shopping_cart[custID][i][j].quantity );
+   	}
+  }
   }
 }
 
@@ -336,7 +359,7 @@ function removeItemFromCart(itemID,itemAttID, custID) {
 	if (typeof shopping_cart[custID][i] !== 'undefined'){
 	  if(shopping_cart[custID][i][0].itemID == itemID && shopping_cart[custID][i][0].itemAttID == itemAttID) {
 	    console.log("customer# " + custID + " cart itemid " + itemID + " and attid " + itemAttID + " will be deleted.");
-	    delete shopping_cart[custID][i];
+	    shopping_cart[custID].splice(i,1);
 	    break;
 	  }  
 	}
@@ -392,7 +415,7 @@ function getItemAttributes(socket, ID) {
 }  
 
 function getCustPurchaseHist(socket,ID){
-  connection.query('SELECT * FROM Item, Item_Inst, Item_Attribute, Purchase_Inst WHERE Purchase_Inst.custID = ' + ID + ' AND Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID AND  Item_Inst.itemID = Item.itemID AND Item_Inst.itemAttID = Item_Attribute.itemAttID ORDER BY Purchase_Inst.purchaseInstID', function(err2, rows) {
+  connection.query('SELECT * FROM Item, Item_Inst, Item_Attribute, Purchase_Inst WHERE Purchase_Inst.custID = ' + ID + ' AND Item_Inst.purchaseInstID = Purchase_Inst.purchaseInstID AND  Item_Inst.itemID = Item.itemID AND Item_Inst.itemAttID = Item_Attribute.itemAttID ORDER BY Purchase_Inst.purchaseInstID DESC', function(err2, rows) {
     if(err2) throw err2;
     else if (rows==null) {socket.emit('err', 'ERR: Item_Inst query was null'); }
     else {
@@ -454,7 +477,7 @@ function cusEnterLeave(ID) {
 
 	if( ID != null && typeof(custArr[ID]) != 'undefined') {		
 		//free memory somehow		
-		delete custArr[ID];
+		custArr.splice(ID,1);
 		io.sockets.emit('removeCustomerFromFeed', ID);
 	} else if (ID!=null) {
 		var cust;
@@ -474,7 +497,6 @@ function cusEnterLeave(ID) {
 
 
 function getCustomerFromDB(ID, callback) {
-
 	if(ID == null) {
 		//socket.emit('err', "error getCustomerFromDB: ID = NULL");
 		return;
@@ -497,7 +519,7 @@ function getCustData(socket, ID) {
                   var newDate = new Date();
 		  socket.emit('retrieveCustData', ID, custArr[ID].cust, timeago(custArr[ID].time));
 		}else {
-		  getCustomerFromDB(socket, ID, function(cust) {
+		  getCustomerFromDB(ID, function(cust) {
                         if(cust.length > 0) {
                                 io.sockets.emit('retrieveCustData', ID, cust[0], "N/A");
                         } else {

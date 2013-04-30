@@ -11,9 +11,11 @@
         socket = io.connect(null);
         switch (page) {
           case "customer":
+			socket.once('retrieveTotalAmntFromDB', function (total) {convertTotalAmntToPoints(total); });
             socket.once('retrieveCustData', function (ID, cust, time) {
-              addCustomerData(ID, cust, time);
-              custInfo = cust;
+				addCustomerData(ID, cust, time);
+				custInfo = cust;
+				socket.emit("getRank",ID);
             });
             socket.once('retrieveCustID', function(ID) { 
               custID = ID;
@@ -84,10 +86,8 @@
             socket.emit('getCustomerListFromDB');
             break;
           case "item_search":
-            
             socket.once('receiveCustExistingCart', function(cart) {
               existingCart = cart;
-              console.log("retrieved the cart");
             });    
             socket.once('retrieveItemListFromDB', function(itemlist){
               $("#item_searchlist").html("");
@@ -170,6 +170,16 @@
       }
     }
     
+    function convertTotalAmntToPoints(total){
+		if (total<1000){
+			$("h1#customer").append(" - Normal");
+		} else if (total<2000){
+                        $("h1#customer").append(" - Valued");
+                } else if (total<5000){
+                        $("h1#customer").append(" - VIP");
+                } else
+                        $("h1#customer").append(" - Executive");
+    }
     function createBrandPieChart(brands){
         var brandLabels = "";
         var brandData = "";
@@ -215,7 +225,12 @@
       //alert(item.itemID + " " + item.itemAttID);
       var node = document.getElementById('item' + itemID +'_itemAtt'+itemAttID);
       if(node.parentNode) {
-        node.parentNode.removeChild(node);
+		var theParent = node.parentNode;
+        theParent.removeChild(node);
+		if(!theParent.hasChildNodes()) {
+			$("a#checkout_button").addClass("ui-disabled");
+            $("#shopping_cart_list").append("<li id=\"empty_message\">Shopping cart is empty. Add items</li>").listview('refresh');
+		}
       }
       socket.emit('removeItemFromCart',itemID,itemAttID,custID);
     }
@@ -243,7 +258,7 @@
       //checkout_cart=[];
       for (var i in cart){
 	for (var j in cart[i]){
-	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">+</button><input type=\"text\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" value=\""+cart[i][j].quantity+"\" disabled=\"disabled\" /><button onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">-</button><a onClick=\"removeItemFromCart("+cart[i][j].itemID + ", " + cart[i][j].itemAttID + ", " + custID + ")\" href=\"#\"></a></li>").listview('refresh');
+	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><div class=\"inc button\" onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">+</div><input type=\"text\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" value=\""+cart[i][j].quantity+"\" disabled=\"disabled\" /><div class=\"dec button\" onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">-</div><a onClick=\"removeItemFromCart("+cart[i][j].itemID + ", " + cart[i][j].itemAttID + ", " + custID + ")\" href=\"#\"></a></li>").listview('refresh');
 	}
 	//changeItemAdded(cart[i],custID);
       }//end for
@@ -297,12 +312,14 @@
           for (var att in attributelist) {
             var boughtFlag = false;
             for (var cartItem in existingCart) {
-              console.log("cart item: " + existingCart[cartItem][0].itemAttID + " and item: "+attributelist[att].itemAttID);
-              if (existingCart[cartItem][0].itemAttID == attributelist[att].itemAttID) {
-                boughtFlag = true;
-                console.log("found a match");
-                break;
-              } 
+				for (var thing in existingCart[cartItem]) {
+				  console.log("cart item: " + existingCart[cartItem][thing].itemAttID + " and item: "+attributelist[att].itemAttID);
+				  if (existingCart[cartItem][thing].itemAttID == attributelist[att].itemAttID) {
+					boughtFlag = true;
+					console.log("found a match");
+					break;
+				  }
+				}
             }
             addAttributeToItem(ID, attributelist[att].itemAttID, attributelist[att],attributelist[att].itemID);
             if(boughtFlag) changeItemAdded(attributelist[att], custID);
@@ -340,14 +357,16 @@
     }
 
     function addCustomerToFeed(ID, cust, time) {
-      $('#t').prepend("<li id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName + " - " + time + "<img src = \"" + cust.picPath + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview('refresh');
+	  var newDate = new Date(time);
+      $('#t').prepend("<li id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName + " - " + (newDate.getMonth()+1)+"/"+newDate.getDate()+"/"+newDate.getFullYear()+" "+newDate.getHours()+":"+newDate.getMinutes()+":"+newDate.getSeconds() + "<img src = \"" + cust.picPath + "\" /></a><a onclick=\"isHelped(" + ID + ")\" href=\"#\"></a></li>").listview('refresh');
     }
     
     function addCustomerToSearchFeed(ID, cust) {
-      $('#searchlist').append("<li class='customer' id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\">" + cust.firstName + " " + cust.lastName +"</a></li>").listview('refresh');
+      $('#searchlist').append("<li class='customer' id=\""+'cust' + ID + "\"><a onClick=\"sendIdToCustomerPage("+ID+")\" href=\"#\" data-transition=\"slide\">" + cust.firstName + " " + cust.lastName +"</a></li>").listview('refresh');
     }  
     
     function sendIdToCustomerPage(ID) {
+		console.log("this is our ID: " +ID);
       socket.emit("setCustomerID", ID);
       $.mobile.changePage( "/customer.html", {
         role: "page",

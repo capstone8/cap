@@ -14,6 +14,6 @@ while True:
 		sys.stdout.write('%#x' % ord(c))
 	#sys.stdout.write('\n')
 	sys.stdout.flush()
-	ser.flushInput()
 	time.sleep(3)
+	ser.flushInput()
 
