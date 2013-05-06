@@ -1,0 +1,46 @@
+div#info_container {
+	height: 200px;
+}
+
+img#cust_pic {
+	height: 200px;
+}
+
+div#customer_picture {
+	float: left;
+	height: 200px;
+}
+
+div#customer_info {
+	float: left;
+	margin: 0 0 0 25px;
+}
+
+
+a.item_info_text {
+	float: left;
+	margin-top: 15px;
+	margin-bottom: 15px;
+}
+
+div#chart_div {
+	margin-left:auto;
+	margin-right:auto;
+}
+
+img.shopping_cart {
+	margin: 0 5px 0 0;
+	height:14px;
+}
+
+a#rank{
+	width: 204px;
+}
+
+div.ui-controlgroup-controls {
+	width:100%;
+}
+
+div.ui-controlgroup-controls a {
+	width:24.9%;
+}

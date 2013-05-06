@@ -21,10 +21,13 @@ server = http.createServer(function(req, res) {
 	//security measure to double check each page
   switch (path){
     case '/':
-      res.writeHead(200, {'Content-Type': 'text/html'});
-      res.write('<h1>Hello! Try the <a href="/index.html">Hey</a></h1>');
-      res.end();
-      break;
+	fs.readFile(__dirname + "/index.html", function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+	break;
     case '/index.html':
       fs.readFile(__dirname + path, function(err, data){
         if (err) return send404(res);
@@ -121,6 +124,14 @@ server = http.createServer(function(req, res) {
         res.end();
       });
       break;  
+	case '/style.css':
+      fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/css' : 'text/css'})
+        res.write(data, 'utf8');
+        res.end();
+      });
+      break;  
       //shopping cart icon
      case '/assets/80-shopping-cart.png':
       fs.readFile(__dirname + path, function(err, data){
@@ -155,32 +166,36 @@ console.log("Connected to MySQL");
 var io = require('socket.io').listen(server);
 
 
-
-
-// on a 'connection' event
-io.sockets.on('connection', function(socket){
-
-	//RFID python script child process
+//RFID python script child process
     var util  = require('util'),
     spawn = require('child_process').spawn,
     ls    = spawn('python', ['test.py']);
-
+	
 	
 	//RFID read-in process
-    ls.stdout.on('data', function(data) {
-      console.log("read RFID: " + data);
+	ls.stdout.on('data', function(data) {
+    console.log("read RFID: " + data);
 	console.log(String(data).length);
      connection.query("SELECT * FROM Customer WHERE rfid = \'" + String(data).trim() + "\'", function(err, rows) {
         if(err) throw err;
-        else if (rows==0) {socket.emit('err', 'ERR: no customer matches that rfid'); }
+        else if (rows==0) {console.log('err', 'ERR: no customer matches that rfid'); }
         else {
 		console.log(rows[0].custID);
           	cusEnterLeave(rows[0].custID)
         }//end else
       });//end query
-	 
 
     });
+
+
+// on a 'connection' event
+io.sockets.on('connection', function(socket){
+
+	
+
+	
+	
+    
 
 	
   console.log("Connection " + socket.id + " accepted.");
@@ -194,11 +209,11 @@ io.sockets.on('connection', function(socket){
 //listener for customer.html query
   socket.on('getCustData',function(ID){getCustData(socket, ID);});
 //invoke when socket is disconnected
-  socket.on('disconnect', function(){
+  /*socket.on('disconnect', function(){
     console.log("Connection " + socket.id + " terminated.");
     //kill mysql connection upon socket disconnect
     connection.end();
-  });
+  });*/
   
   //listener for when an item is removed from cart
   socket.on('removeItemFromCart', function(itemID, itemAttID, custID){removeItemFromCart(itemID,itemAttID, custID);});

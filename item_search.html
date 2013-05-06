@@ -24,7 +24,14 @@
                 <h1>Item Search</h1>
         </div><!-- /header -->
 
-        <div data-role="content">       
+        <div data-role="content">     
+				<div class="item_search_buttons" data-role="controlgroup" data-type="horizontal" >
+					<a id="sort_all" href="#" onClick="displaySortedItems('all')" data-role="button" class="ui-btn-active">All</a>
+					<a id="sort_shirt" href="#" onClick="displaySortedItems('shirt')" data-role="button">Shirts</a>
+					<a id="sort_pant" href="#" onClick="displaySortedItems('pant')" data-role="button">Pants</a>
+					<a id="sort_dress" href="#" onClick="displaySortedItems('dress')" data-role="button">Dresses</a>
+					
+				</div>
                 <div id="item_searchlist" data-role="collapsible-set"  data-inset="false">
                   
                 </div>
@@ -39,6 +46,7 @@
                         <div data-role="navbar">
                                 <ul>
                                         <li><a href="index.html" data-icon="home" data-iconpos="bottom" data-transition="pop">Home</a></li>
+										<li><a href="shopping_cart.html" data-iconpos="bottom" data-transition="pop">Shopping Cart</a></li>
                                 </ul>
                         </div><!-- /navbar -->
                 </div><!-- /footer -->

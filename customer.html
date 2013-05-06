@@ -2,8 +2,13 @@
 <html> 
 <head> 
 	<title>Customer Information</title> 
+	
 </head> 
+
+
+
 <body> 
+	
 	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
 	<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
 	<script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
@@ -30,12 +35,18 @@
 	
 	<div data-role="header" data-position="fixed">
 		<h1>Customer Information</h1>
-		<a class="ui-btn-right" href="#" onClick="loadPage('shopping_cart')" data-role="button" data-mini="true" data-inline="true" data-theme="b"><img src="/assets/80-shopping-cart.png" alt="Add to cart" class="ui-li-icon">    Place Order</a>
+		<a class="ui-btn-right" href="#" onClick="loadPage('shopping_cart')" data-role="button" data-mini="true" data-inline="true" data-theme="b"><img src="/assets/80-shopping-cart.png" alt="Add to cart" class="shopping_cart ui-li-icon">    Place Order</a>
 	</div><!-- /header -->
 	
 	<div id="content" data-role="content">
-	<h1 id="customer">Placeholder</h1>
-	<h3 class="time">Time in store - N/A</h3>
+	<div id="info_container">
+		<div id="customer_picture"></div>
+		<div id="customer_info">
+			<h1 id="customer">Customer</h1>
+			<a id="rank" href="#" data-role="button" data-icon="star" data-theme="e"></a>
+			<h3 class="time"></h3>
+		</div>
+	</div>
 		
 		<ul data-role="listview" data-inset="true" >
 			<li><a href="#" onClick="loadPage('pp')">Past Purchases

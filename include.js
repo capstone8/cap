@@ -33,7 +33,7 @@
             socket.on('removeCustomerFromFeed', function(ID) {removeCustomerFromFeed(ID);});
             socket.on('addCustomerToFeed', function(ID, cust, time) {addCustomerToFeed(ID, cust, time);});
             socket.on('isHelped',function(ID, helped){changeHelped(ID,helped); });
-            socket.on('retrieveCustomerListFromFeed', function(list) {
+            socket.once('retrieveCustomerListFromFeed', function(list) {
               for (var cust in list) {
                 addCustomerToFeed(list[cust].cust.personalID, list[cust].cust, list[cust].time);
                 changeHelped(list[cust].helped, list[cust].cust.personalID);
@@ -110,7 +110,7 @@
           case "brands":  
             socket.once('retrieveCustData', function (ID, cust, time) {
               custInfo = cust;
-	       $("h1#pp").text("Past Purchases - " + cust.firstName + " " + cust.lastName);
+	       $("h1#brands").text("Brands - " + cust.firstName + " " + cust.lastName);
             });
             socket.once('retrieveCustID', function(ID) { 
               custID = ID;
@@ -175,16 +175,71 @@
       }
     }
     
+	
+	function displaySortedItems(action){
+		switch (action) {
+			case "all":
+				$("a#sort_all").addClass("ui-btn-active");
+				$("a#sort_pant").removeClass("ui-btn-active");
+				$("a#sort_dress").removeClass("ui-btn-active");
+				$("a#sort_shirt").removeClass("ui-btn-active");
+				$("div.item_search_buttons").controlgroup("refresh");
+				$( "div.ui-collapsible" ).each(function() {
+				  $(this).show();
+				});
+			break;
+			case "shirt":
+				$("a#sort_all").removeClass("ui-btn-active");
+				$("a#sort_pant").removeClass("ui-btn-active");
+				$("a#sort_dress").removeClass("ui-btn-active");
+				$("a#sort_shirt").addClass("ui-btn-active");
+				$("div.item_search_buttons").controlgroup("refresh");
+				$( "div.ui-collapsible" ).each(function() {
+				  if( $(this).attr("class").indexOf("Shirt") != -1 ){
+					$(this).show();
+				  } else {
+					$(this).hide();
+				  }
+				});
+			break;
+			case "pant":
+				$("a#sort_all").removeClass("ui-btn-active");
+				$("a#sort_pant").addClass("ui-btn-active");
+				$("a#sort_dress").removeClass("ui-btn-active");
+				$("a#sort_shirt").removeClass("ui-btn-active");
+				$( "div.ui-collapsible" ).each(function() {
+				  if( $(this).attr("class").indexOf("Pant") != -1 ){
+					$(this).show();
+				  } else {
+					$(this).hide();
+				  }
+				});
+			break;
+			case "dress":
+				$("a#sort_all").removeClass("ui-btn-active");
+				$("a#sort_pant").removeClass("ui-btn-active");
+				$("a#sort_dress").addClass("ui-btn-active");
+				$("a#sort_shirt").removeClass("ui-btn-active");
+				$( "div.ui-collapsible" ).each(function() {
+				  if( $(this).attr("class")=="Dress" ){
+					$(this).show();
+				  } else {
+					$(this).hide();
+				  }
+				});
+			break;
+		}
+	}
 	//converts the total purchase amount to points and gives the customer a rank
     function convertTotalAmntToPoints(total){
 		if (total<1000){
-			$("h1#customer").append(" - Normal");
+			$("a#rank .ui-btn-text").text("Normal");
 		} else if (total<2000){
-                        $("h1#customer").append(" - Valued");
+                        $("a#rank .ui-btn-text").text("Valued");
                 } else if (total<5000){
-                        $("h1#customer").append(" - VIP");
+                        $("a#rank .ui-btn-text").text("VIP");
                 } else
-                        $("h1#customer").append(" - Executive");
+                        $("a#rank .ui-btn-text").text("Executive");
     }
 	
 	//consults google charts and creates a pretty-printed graph of the customer's brand choices
@@ -205,7 +260,7 @@
         }
           console.log(brandData);
           console.log(brandLabels);
-          $("#chart_div").html("<img src=\"//chart.googleapis.com/chart?chf=bg,s,67676700&chs=500x300&cht=p&chd=t:"+brandData+"&chds=a&chl="+brandLabels+"\" width=\"auto\" height=\"300\" alt=\"\" />");
+          $("#chart_div").html("<img src=\"//chart.googleapis.com/chart?chf=bg,s,67676700&chs=600x400&cht=p&chd=t:"+brandData+"&chds=a&chl="+brandLabels+"\" width=\"auto\" height=\"auto\" alt=\"\" />");
     }
     
 	//adds size to the customer's information
@@ -230,13 +285,15 @@
 	//displays checkout page and the items purchased
     function displayItemsForCheckout(cart,custID,totalPrice,numItems){
 		  if (_.isEmpty(cart)== false){
-		$("#checkout_list").append("<h3 style='text-align: center; background-color:#BABABA'>Your order has been processed!</h3>").listview('refresh');}
+		//$("#checkout_list").append("<a id=\"id_purchase_href=\"/customer.html\" data-role=\"button\">Success! Go Back.</a>").listview('refresh');
+		}
+		
 		  for (var i in cart){
 		for (var j in cart[i]){
 				$("#checkout_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"  Quantity: "+ cart[i][j].quantity+ "</li>").listview('refresh');
 		}
 		  }//end for
-		  $("#checkout_list").append("<br/><br/><span id='total'><u>Number of Items:</u><b> "+ numItems +"</b><br/><br/><u>Total Price:</u><b>$"+ totalPrice +"<b></span>").listview('refresh');
+		  $("#checkout_list").append("<li data-theme=\"e\" style=\"text-align:center;\">Amount of Items: "+numItems+", Total Price: $"+totalPrice+"</li>").listview('refresh');
     }
 	
 	//removes an items from the current shopping cart
@@ -283,7 +340,13 @@
       //checkout_cart=[];
       for (var i in cart){
 	for (var j in cart[i]){
-	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><div class=\"inc button\" onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">+</div><input type=\"text\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" value=\""+cart[i][j].quantity+"\" disabled=\"disabled\" /><div class=\"dec button\" onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">-</div><a onClick=\"removeItemFromCart("+cart[i][j].itemID + ", " + cart[i][j].itemAttID + ", " + custID + ")\" href=\"#\"></a></li>").listview('refresh');
+	        $("#shopping_cart_list").append("<li id=\""+'item' + cart[i][j].itemID +'_itemAtt'+cart[i][j].itemAttID+ "\"><a class=\"\" href=\"#\">" + cart[i][j].category + " - " + cart[i][j].brand + ":  "+ cart[i][j].clotheSize + " ,  " + cart[i][j].color + "    $" + cart[i][j].price +"</a><a  data-icon=\"plus\" data-iconpos=\"notext\" data-role=\"button\" href=\"#\" onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+plus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus\" data-inline=\"true\">Plus</a><label for=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" class=\"ui-hidden-accessible\">Quantity</label><input type=\"text\" class=\"item_quantity\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num\" name=\"quantity\" value=\""+cart[i][j].quantity+"\" disabled=\"disabled\" /><a href=\"#\" data-role=\"button\" data-icon=\"minus\" data-iconpos=\"notext\" class=\"dec button\" onClick=\"changeQuantityVal("+cart[i][j].itemID+","+cart[i][j].itemAttID+","+minus+")\" id=\"item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus\" data-inline=\"true\">Minus</a><a onClick=\"removeItemFromCart("+cart[i][j].itemID + ", " + cart[i][j].itemAttID + ", " + custID + ")\" href=\"#\"></a></li>").listview('refresh');
+			$("a#item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_plus").button();
+			$("a#item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_minus").button();
+			$("input#item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num").addClass("ui-input-text");
+			$("input#item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num").css({"font-size": "16pt", "width": "50px", "font-weight": "bold", "display":"inline"});
+			$("input#item" + cart[i][j].itemID + "itemAttID"+cart[i][j].itemAttID+"_num").textinput();
+			$("#shopping_cart_list").listview("refresh");
 	}
 
       }//end for
@@ -330,7 +393,7 @@
     
 	//adds an item to the item search feed
     function addItemToSearchFeed(ID, item) {
-      $('#item_searchlist').append("<div data-role=\"collapsible\" data-inset\"false\"><h3 onClick=\"loadItemAttributes("+ID+")\">" + item.category + " - " + item.brand + "</h3><ul id=\"item"+ID+"\" data-role=\"listview\" data-inset=\"false\" data-filter=\"true\" data-filter-reveal=\"true\" data-filter-placeholder=\"Search Item..\"></ul></div>").collapsibleset("refresh");
+      $('#item_searchlist').append("<div class= \"" + item.category + "\" data-role=\"collapsible\" data-inset\"false\"><h3 onClick=\"loadItemAttributes("+ID+")\">" + item.category + " - " + item.brand + "</h3><ul id=\"item"+ID+"\" data-role=\"listview\" data-inset=\"false\" data-filter=\"true\" data-filter-reveal=\"true\" data-filter-placeholder=\"Search Item..\"></ul></div>").collapsibleset("refresh");
     }
     
 	//loads the item attributes for an item in the search feed
@@ -373,7 +436,7 @@
           $("#purchase_history_list").append("<li id=\"purchase"+purchaseInst.purchaseInstID+"\" data-role=\"list-divider\">"+(newDate.getMonth()+1)+"/"+newDate.getDate()+"/"+newDate.getFullYear()+" "+newDate.getHours()+":"+newDate.getMinutes()+":"+newDate.getSeconds()+"</li>").listview('refresh');
         }  
 
-        $("#purchase_history_list").append("<li id=\"item"+purchaseInst.itemInstID+"\"<a href=\"#\"><h3>"+purchaseInst.category+"</h3><p><strong>"+purchaseInst.brand+"</strong></p><p>"+purchaseInst.clotheSize+"  " +purchaseInst.adjPrice+"</p></a></li>").listview("refresh");
+        $("#purchase_history_list").append("<li id=\"item"+purchaseInst.itemInstID+"\"<a href=\"#\"><h3>"+purchaseInst.category+"</h3><p><strong>"+purchaseInst.brand+"</strong></p><p>"+purchaseInst.clotheSize+"  $" +purchaseInst.adjPrice+"</p></a></li>").listview("refresh");
       }  
       $("#purchase_history_list").listview("refresh");
     }  
@@ -425,13 +488,21 @@
 
 	//adds the data for a customer
     function addCustomerData(ID, cust, time) {
-	$("h1#customer").text(cust.firstName + " " + cust.lastName);
+		$("h1#customer").text(cust.firstName + " " + cust.lastName);
+		if(time!=="N/A")
         $(".time").text("Entered the store " + time);
+		$("div#customer_picture").html("<img id=\"cust_pic\" src=\""+cust.picPath+"\" />");
     }
     
 	//helper for the item search page
     function exitPage(theSocket,listeners) {
       theSocket.removeListener('retrieveItemAttributes');
+	  
+	  theSocket.removeListener('alert');
+	  theSocket.removeListener('removeCustomerFromFeed');
+	  theSocket.removeListener('addCustomerToFeed');
+	  theSocket.removeListener('isHelped');
+	  
     }  
     
 	//function for when a page is loaded to change the current page
@@ -503,7 +574,6 @@
 	    });
 	break;
      }
-      
     }
     
 	//sends the customer id to the customer page
